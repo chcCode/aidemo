@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>方块大作战</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      background: #20262e;
+      font-family: "Microsoft YaHei", Arial, sans-serif;
+      touch-action: none;
+      overscroll-behavior: none;
+      -webkit-user-select: none; user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #game { display: block; }
+    .overlay {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: rgba(15, 20, 26, 0.72);
+      z-index: 10;
+    }
+    .overlay.hidden { display: none; }
+    .panel {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 36px 48px;
+      text-align: center;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    }
+    .panel h1 { font-size: 34px; color: #333; margin-bottom: 8px; letter-spacing: 2px; }
+    .panel .sub { color: #888; font-size: 14px; margin-bottom: 20px; }
+    .panel input {
+      width: 240px; padding: 10px 14px; font-size: 16px;
+      border: 2px solid #cfd8dc; border-radius: 8px; outline: none;
+      margin-bottom: 16px; text-align: center;
+    }
+    .panel input:focus { border-color: #43a047; }
+    .panel button {
+      display: block; width: 240px; margin: 0 auto;
+      padding: 12px 0; font-size: 18px; font-weight: bold; color: #fff;
+      background: #43a047; border: none; border-radius: 8px; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .panel button:hover { background: #388e3c; }
+    .panel .tips { margin-top: 18px; font-size: 13px; color: #999; }
+    #finalStats { font-size: 18px; color: #555; margin-bottom: 20px; }
+
+    /* ================= 触屏控件 ================= */
+    .touch-ui { display: none; }
+    body.playing .touch-ui { display: block; }
+    body.playing #touchButtons { display: flex; }
+
+    #touchZone {
+      position: fixed; left: 0; top: 0;
+      width: 55%; height: 100%;
+      z-index: 4;
+    }
+    #joystick {
+      position: fixed; width: 140px; height: 140px; border-radius: 50%;
+      background: rgba(255, 255, 255, 0.10);
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      z-index: 5; pointer-events: none;
+    }
+    #joystick.hidden { display: none; }
+    #stick {
+      position: absolute; left: 50%; top: 50%;
+      width: 56px; height: 56px; margin: -28px 0 0 -28px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.45);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    #touchButtons {
+      position: fixed;
+      right: max(18px, env(safe-area-inset-right));
+      bottom: max(24px, env(safe-area-inset-bottom));
+      z-index: 6;
+      align-items: flex-end; gap: 14px;
+    }
+    #touchButtons button {
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      color: #fff; font-weight: bold; font-family: inherit;
+      touch-action: none;
+    }
+    #touchButtons button:active { transform: scale(0.92); }
+    #btnSplit { width: 86px; height: 86px; font-size: 20px; background: rgba(67, 160, 71, 0.78); }
+    #btnEject { width: 66px; height: 66px; font-size: 16px; background: rgba(30, 136, 229, 0.78); }
+
+    /* 竖屏提示 */
+    #rotateHint {
+      display: none;
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(15, 20, 26, 0.94);
+      color: #fff; font-size: 20px; line-height: 1.8;
+      text-align: center;
+      align-items: center; justify-content: center;
+    }
+    @media (orientation: portrait) and (pointer: coarse) {
+      #rotateHint { display: flex; }
+    }
+
+    /* 小屏横屏适配 */
+    @media (max-height: 500px) {
+      .panel { padding: 20px 32px; }
+      .panel h1 { font-size: 24px; }
+      .panel .sub { margin-bottom: 12px; font-size: 12px; }
+      .panel input { margin-bottom: 10px; padding: 8px 12px; font-size: 14px; }
+      .panel button { padding: 9px 0; font-size: 16px; }
+      .panel .tips { margin-top: 10px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div id="touchZone" class="touch-ui"></div>
+  <div id="joystick" class="hidden"><div id="stick"></div></div>
+  <div id="touchButtons" class="touch-ui">
+    <button id="btnEject">吐球</button>
+    <button id="btnSplit">分裂</button>
+  </div>
+  <div id="rotateHint">请旋转设备<br>横屏游玩体验更佳</div>
+
+  <div id="startScreen" class="overlay">
+    <div class="panel">
+      <h1>方块大作战</h1>
+      <p class="sub">方形世界版「球球大作战」：吃掉小方块，躲开大方块</p>
+      <input id="nameInput" maxlength="12" placeholder="输入你的名字" value="方块君">
+      <button id="startBtn">开始游戏</button>
+      <p class="tips" id="startTips">鼠标移动控制方向 · 空格分裂 · W 吐出质量</p>
+    </div>
+  </div>
+
+  <div id="gameOverScreen" class="overlay hidden">
+    <div class="panel">
+      <h1>游戏结束</h1>
+      <p id="finalStats"></p>
+      <button id="restartBtn">再来一局</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
