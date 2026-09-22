@@ -39,7 +39,8 @@
   var yaw = 0;
   var pitch = -0.32;
   var keys = {};
-  var dragging = false;
+  var dragging = false;      // 左键环视
+  var zoomDragging = false;  // 中键拖拽缩放
   var dragMoved = 0;
   var lastX = 0, lastY = 0;
 
@@ -56,7 +57,28 @@
     return new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
   }
 
+  /** 限制相机活动范围。 */
+  function clampPosition() {
+    camera.position.x = Math.max(-1600, Math.min(1600, camera.position.x));
+    camera.position.z = Math.max(-1600, Math.min(1600, camera.position.z));
+    camera.position.y = Math.max(6, Math.min(900, camera.position.y));
+  }
+
+  /** 沿视线方向推拉镜头（缩放）。 */
+  function dolly(amount) {
+    fly = null; // 手动缩放时打断飞行动画
+    camera.position.addScaledVector(forwardDir(), amount);
+    clampPosition();
+  }
+
   canvas.addEventListener('mousedown', function (e) {
+    if (e.button === 1) {
+      // 中键：拖拽缩放
+      zoomDragging = true;
+      lastY = e.clientY;
+      e.preventDefault();
+      return;
+    }
     dragging = true;
     dragMoved = 0;
     lastX = e.clientX;
@@ -64,6 +86,12 @@
   });
 
   window.addEventListener('mousemove', function (e) {
+    if (zoomDragging) {
+      var dyz = e.clientY - lastY;
+      lastY = e.clientY;
+      dolly(-dyz * 1.6); // 上推拉近，下拉拉远
+      return;
+    }
     if (!dragging) return;
     var dx = e.clientX - lastX;
     var dy = e.clientY - lastY;
@@ -77,11 +105,22 @@
   });
 
   window.addEventListener('mouseup', function (e) {
+    if (e.button === 1) {
+      zoomDragging = false;
+      return;
+    }
     if (dragging && dragMoved < 6 && e.target === canvas) {
       pickLandmark(e.clientX, e.clientY);
     }
     dragging = false;
   });
+
+  // 滚轮缩放：上滚拉近，下滚拉远
+  canvas.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    var delta = Math.max(-120, Math.min(120, e.deltaY));
+    dolly(-delta * 0.6);
+  }, { passive: false });
 
   window.addEventListener('keydown', function (e) {
     keys[e.code] = true;
@@ -106,10 +145,7 @@
     if (move.lengthSq() > 0) {
       move.normalize().multiplyScalar(speed * dt);
       camera.position.add(move);
-      // 限制活动范围
-      camera.position.x = Math.max(-1600, Math.min(1600, camera.position.x));
-      camera.position.z = Math.max(-1600, Math.min(1600, camera.position.z));
-      camera.position.y = Math.max(6, Math.min(900, camera.position.y));
+      clampPosition();
     }
   }
 
