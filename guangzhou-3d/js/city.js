@@ -81,8 +81,8 @@ window.GZCity = (function () {
       var len = Math.sqrt(nx * nx + nz * nz) || 1;
       nx /= len;
       nz /= len;
-      positions.push(p.x + nx * RIVER_WIDTH / 2, 0.6, p.z + nz * RIVER_WIDTH / 2);
-      positions.push(p.x - nx * RIVER_WIDTH / 2, 0.6, p.z - nz * RIVER_WIDTH / 2);
+      positions.push(p.x + nx * RIVER_WIDTH / 2, 1.0, p.z + nz * RIVER_WIDTH / 2);
+      positions.push(p.x - nx * RIVER_WIDTH / 2, 1.0, p.z - nz * RIVER_WIDTH / 2);
       uvs.push(t * 24, 0, t * 24, 1);
       if (i < segments) {
         var a = i * 2;
@@ -98,8 +98,7 @@ window.GZCity = (function () {
     var mat = new THREE.MeshPhongMaterial({
       color: 0xffffff,
       map: tex,
-      transparent: true,
-      opacity: 0.96,
+      side: THREE.DoubleSide,
       shininess: 35,
       specular: 0x446677
     });
@@ -197,7 +196,7 @@ window.GZCity = (function () {
         if (bt.t < 0.02) bt.t = 0.98;
         var p = curve.getPoint(bt.t);
         var tan = curve.getTangent(bt.t);
-        bt.mesh.position.set(p.x, 0.9 + Math.sin(time * 1.8 + bt.phase) * 0.25, p.z);
+        bt.mesh.position.set(p.x, 1.4 + Math.sin(time * 1.8 + bt.phase) * 0.25, p.z);
         bt.mesh.rotation.y = Math.atan2(tan.x, tan.z) + (bt.speed < 0 ? Math.PI : 0);
         bt.mesh.rotation.z = Math.sin(time * 1.5 + bt.phase) * 0.02;
       });
