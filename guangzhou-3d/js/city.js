@@ -47,7 +47,7 @@ window.GZCity = (function () {
     canvas.width = 256;
     canvas.height = 128;
     var ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#3d7ca8';
+    ctx.fillStyle = '#2e6b7a';
     ctx.fillRect(0, 0, 256, 128);
     var rand = makeRandom(42);
     for (var i = 0; i < 90; i++) {
@@ -96,12 +96,12 @@ window.GZCity = (function () {
     geo.computeVertexNormals();
     var tex = makeWaterTexture();
     var mat = new THREE.MeshPhongMaterial({
-      color: 0x9fc6e0,
+      color: 0xffffff,
       map: tex,
       transparent: true,
-      opacity: 0.94,
-      shininess: 90,
-      specular: 0x99ccee
+      opacity: 0.96,
+      shininess: 35,
+      specular: 0x446677
     });
     var mesh = new THREE.Mesh(geo, mat);
     scene.add(mesh);

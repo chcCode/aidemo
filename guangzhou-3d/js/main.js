@@ -273,7 +273,7 @@
     sun.intensity = cfg.sun;
     ambient.intensity = cfg.ambient;
     city.buildingMat.emissiveIntensity = cfg.emissive;
-    city.riverMat.color.setHex(isDay ? 0x9fc6e0 : 0x2a4a66);
+    city.riverMat.color.setHex(isDay ? 0xffffff : 0x3d5a6a);
     city.groundMat.color.setHex(isDay ? 0x93a883 : 0x3d4a3a);
     // 广州塔夜景彩灯
     var lattice = landmarks.night['canton-tower.latticeMat'];
