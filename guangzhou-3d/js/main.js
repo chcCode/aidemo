@@ -357,6 +357,9 @@
     // 珠江水面流动
     city.riverTex.offset.x = t * 0.03;
 
+    // 珠江游船
+    city.boats.update(dt, t, isDay);
+
     // 夜晚广州塔彩灯变色
     if (!isDay) {
       var lattice = landmarks.night['canton-tower.latticeMat'];

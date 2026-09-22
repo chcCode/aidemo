@@ -108,6 +108,103 @@ window.GZCity = (function () {
     return { mesh: mesh, mat: mat, tex: tex };
   }
 
+  /** 两岸堤岸（沿河偏移的石质条带）。 */
+  function buildEmbankments(scene) {
+    var curve = riverCurve();
+    var mat = new THREE.MeshLambertMaterial({ color: 0xb0aa9c, side: THREE.DoubleSide });
+    [-1, 1].forEach(function (side) {
+      var segments = 220;
+      var positions = [];
+      var indices = [];
+      var off = RIVER_WIDTH / 2 + 5;
+      var w = 8;
+      for (var i = 0; i <= segments; i++) {
+        var t = i / segments;
+        var p = curve.getPoint(t);
+        var tan = curve.getTangent(t);
+        var nx = -tan.z;
+        var nz = tan.x;
+        var len = Math.sqrt(nx * nx + nz * nz) || 1;
+        nx /= len;
+        nz /= len;
+        var cx = p.x + side * off * nx;
+        var cz = p.z + side * off * nz;
+        positions.push(cx + nx * w / 2, 1.2, cz + nz * w / 2);
+        positions.push(cx - nx * w / 2, 1.2, cz - nz * w / 2);
+        if (i < segments) {
+          var a = i * 2;
+          indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+        }
+      }
+      var geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geo.setIndex(indices);
+      geo.computeVertexNormals();
+      scene.add(new THREE.Mesh(geo, mat));
+    });
+  }
+
+  /** 珠江游船：沿江往返行驶，夜间亮灯。 */
+  function buildBoats(scene) {
+    var curve = riverCurve();
+    var group = new THREE.Group();
+    var boats = [];
+    var hullMat = new THREE.MeshLambertMaterial({ color: 0xf0f2f4 });
+    var cabinMat = new THREE.MeshLambertMaterial({
+      color: 0xdfe8ee, emissive: 0xffe9a8, emissiveIntensity: 0
+    });
+    var trimMat = new THREE.MeshLambertMaterial({ color: 0xc0392b });
+
+    for (var i = 0; i < 3; i++) {
+      var b = new THREE.Group();
+      // 船体
+      var hull = new THREE.Mesh(new THREE.BoxGeometry(6, 2.5, 16), hullMat);
+      hull.position.y = 1.2;
+      b.add(hull);
+      // 船头
+      var bow = new THREE.Mesh(new THREE.ConeGeometry(3, 6, 4), hullMat);
+      bow.rotation.x = Math.PI / 2;
+      bow.rotation.y = Math.PI / 4;
+      bow.scale.set(1, 0.45, 1);
+      bow.position.set(0, 1.2, 11);
+      b.add(bow);
+      // 双层船舱
+      var cab1 = new THREE.Mesh(new THREE.BoxGeometry(5, 2.2, 12), cabinMat);
+      cab1.position.y = 3.5;
+      b.add(cab1);
+      var cab2 = new THREE.Mesh(new THREE.BoxGeometry(4, 2, 9), cabinMat);
+      cab2.position.y = 5.6;
+      b.add(cab2);
+      // 红色顶棚
+      var roof = new THREE.Mesh(new THREE.BoxGeometry(4.6, 0.5, 10), trimMat);
+      roof.position.y = 6.8;
+      b.add(roof);
+      group.add(b);
+      boats.push({
+        mesh: b,
+        t: 0.15 + i * 0.3,
+        speed: (i % 2 === 0 ? 1 : -1) * (0.006 + i * 0.0015),
+        phase: i * 2.1
+      });
+    }
+    scene.add(group);
+
+    function update(dt, time, isDay) {
+      cabinMat.emissiveIntensity = isDay ? 0 : 1.0;
+      boats.forEach(function (bt) {
+        bt.t += bt.speed * dt;
+        if (bt.t > 0.98) bt.t = 0.02;
+        if (bt.t < 0.02) bt.t = 0.98;
+        var p = curve.getPoint(bt.t);
+        var tan = curve.getTangent(bt.t);
+        bt.mesh.position.set(p.x, 0.9 + Math.sin(time * 1.8 + bt.phase) * 0.25, p.z);
+        bt.mesh.rotation.y = Math.atan2(tan.x, tan.z) + (bt.speed < 0 ? Math.PI : 0);
+        bt.mesh.rotation.z = Math.sin(time * 1.5 + bt.phase) * 0.02;
+      });
+    }
+    return { group: group, update: update };
+  }
+
   /** 地面。 */
   function buildGround(scene) {
     var geo = new THREE.PlaneGeometry(3400, 3400);
@@ -202,7 +299,7 @@ window.GZCity = (function () {
     [130, -220, 80], [-70, -330, 70], [90, -330, 70], [430, 120, 110],
     [-720, -520, 100], [-1020, -320, 90], [-830, -60, 80], [-1080, 165, 120],
     [-520, -380, 70], [-980, -140, 80], [-680, -720, 220], [-600, -660, 80],
-    [300, -1150, 380]
+    [300, -1150, 380], [260, 85, 100], [-600, 95, 100]
   ];
 
   function inClearing(x, z) {
@@ -285,12 +382,15 @@ window.GZCity = (function () {
     buildParks(scene);
     buildRoads(scene);
     var river = buildRiver(scene);
+    buildEmbankments(scene);
+    var boats = buildBoats(scene);
     var buildingMat = buildBuildings(scene);
     return {
       riverTex: river.tex,
       riverMat: river.mat,
       buildingMat: buildingMat,
       groundMat: groundMat,
+      boats: boats,
       distToRiver: distToRiver
     };
   }
@@ -299,6 +399,7 @@ window.GZCity = (function () {
     build: build,
     makeFacadeTextures: makeFacadeTextures,
     distToRiver: distToRiver,
+    riverCurve: riverCurve,
     RIVER_WIDTH: RIVER_WIDTH
   };
 })();

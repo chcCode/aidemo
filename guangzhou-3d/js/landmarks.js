@@ -50,6 +50,21 @@ window.GZLandmarks = (function () {
       desc: '2009 年通车，横跨珠江的自锚式悬索桥，白色桥塔形如贝壳，是拍摄广州塔的经典机位。'
     },
     {
+      id: 'ersha', name: '二沙岛', cat: '现代地标', pos: [-190, 55],
+      view: [170, 100, 190],
+      desc: '珠江中的江心绿岛，岛上有星海音乐厅、广东美术馆，绿树成荫，是广州的文化艺术之岛。'
+    },
+    {
+      id: 'gz-bridge', name: '广州大桥', cat: '现代地标', pos: [260, 85],
+      view: [160, 90, 180],
+      desc: '1985 年通车，连接广州大道南北两岸，是珠江新城与海珠区之间的重要通道。'
+    },
+    {
+      id: 'haizhu-bridge', name: '海珠桥', cat: '历史人文', pos: [-600, 95],
+      view: [140, 80, 180],
+      desc: '1933 年建成通车，是广州市第一座跨江大桥，曾毁于战火后重建，见证了羊城的百年变迁。'
+    },
+    {
       id: 'memorial', name: '中山纪念堂', cat: '历史人文', pos: [-720, -520],
       view: [160, 110, 200],
       desc: '1931 年建成，由建筑师吕彦直设计，八角攒尖宝蓝色琉璃瓦顶，为纪念孙中山先生而建，是广州近代建筑杰作。'
@@ -540,6 +555,69 @@ window.GZLandmarks = (function () {
     return { group: g, height: 6 };
   }
 
+  /** 二沙岛：江心绿岛 + 星海音乐厅。 */
+  function buildErsha() {
+    var g = new THREE.Group();
+    var island = new THREE.Mesh(new THREE.CylinderGeometry(110, 115, 5, 36), lambert(0x86ab6a));
+    island.scale.z = 0.42;
+    island.position.y = 1.2;
+    g.add(island);
+    // 星海音乐厅：白色贝壳穹顶
+    var shell = new THREE.Mesh(
+      new THREE.SphereGeometry(26, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2),
+      lambert(0xf0f2f0, { side: THREE.DoubleSide })
+    );
+    shell.scale.set(1.3, 0.6, 1);
+    shell.position.set(-25, 3, 0);
+    g.add(shell);
+    // 广东美术馆：深色方盒
+    addBox(g, 30, 12, 18, 38, 8, -5, lambert(0x2e2e34));
+    return { group: g, height: 22 };
+  }
+
+  /** 海珠桥：钢桁架拱桥。 */
+  function buildHaizhuBridge() {
+    var g = new THREE.Group();
+    var steel = lambert(0x5f6f68);
+    var deckMat = lambert(0x7a7e82);
+    var LEN = 220, W = 14;
+    addBox(g, W, 3, LEN, 0, 12, 0, deckMat);
+    for (var i = -2; i <= 2; i++) {
+      addBox(g, 4, 12, 4, 0, 6, i * 44, deckMat);
+    }
+    // 钢拱肋（两跨）与吊杆
+    [-1, 1].forEach(function (sx) {
+      [-55, 55].forEach(function (zc) {
+        var curve = new THREE.QuadraticBezierCurve3(
+          new THREE.Vector3(sx * (W / 2 - 1), 13, zc - 50),
+          new THREE.Vector3(sx * (W / 2 - 1), 34, zc),
+          new THREE.Vector3(sx * (W / 2 - 1), 13, zc + 50)
+        );
+        g.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 20, 0.9, 6, false), steel));
+        for (var j = 1; j < 8; j++) {
+          var p = curve.getPoint(j / 8);
+          addBox(g, 0.5, p.y - 13, 0.5, p.x, (p.y + 13) / 2, p.z, steel);
+        }
+      });
+    });
+    return { group: g, height: 36 };
+  }
+
+  /** 广州大桥：混凝土梁桥。 */
+  function buildGzBridge() {
+    var g = new THREE.Group();
+    var mat = lambert(0x9aa0a4);
+    var LEN = 230, W = 18;
+    addBox(g, W, 3.5, LEN, 0, 11, 0, mat);
+    for (var i = -3; i <= 3; i++) {
+      addBox(g, 5, 11, 5, 0, 5.5, i * 32, mat);
+    }
+    [-W / 2 + 0.5, W / 2 - 0.5].forEach(function (x) {
+      addBox(g, 0.8, 1.5, LEN, x, 14, 0, lambert(0xc8ccce));
+    });
+    return { group: g, height: 16 };
+  }
+
   /** 白云山：群峰。 */
   function buildBaiyun() {
     var g = new THREE.Group();
@@ -606,6 +684,9 @@ window.GZLandmarks = (function () {
     'museum': buildMuseum,
     'haixinsha': buildHaixinsha,
     'liede': buildLiedeBridge,
+    'ersha': buildErsha,
+    'gz-bridge': buildGzBridge,
+    'haizhu-bridge': buildHaizhuBridge,
     'memorial': buildMemorialHall,
     'chen-clan': buildChenClan,
     'cathedral': buildCathedral,
