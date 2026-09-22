@@ -60,6 +60,11 @@ window.GZLandmarks = (function () {
       desc: '1985 年通车，连接广州大道南北两岸，是珠江新城与海珠区之间的重要通道。'
     },
     {
+      id: 'haixin-bridge', name: '海心桥', cat: '现代地标', pos: [-22, 98],
+      view: [110, 70, 130],
+      desc: '2021 年开通，广州首座跨珠江人行桥，世界最大跨度的曲梁斜拱人行桥，桥形立意"琴鸣绢舞·岭南花舟"，连接二沙岛与广州塔。'
+    },
+    {
       id: 'haizhu-bridge', name: '海珠桥', cat: '历史人文', pos: [-600, 95],
       view: [140, 80, 180],
       desc: '1933 年建成通车，是广州市第一座跨江大桥，曾毁于战火后重建，见证了羊城的百年变迁。'
@@ -618,6 +623,103 @@ window.GZLandmarks = (function () {
     return { group: g, height: 16 };
   }
 
+  /** 海心桥：曲梁斜拱人行桥（局部坐标，组原点位于桥面中心附近）。 */
+  function buildHaixinBridge() {
+    var g = new THREE.Group();
+    var white = lambert(0xf2f4f6);
+
+    // 桥面平面曲线（相对组原点，对应世界坐标：二沙岛东端 → 广州塔侧南岸）
+    var p0 = new THREE.Vector3(-58, 0, -40);
+    var p1 = new THREE.Vector3(-3, 0, 10);
+    var p2 = new THREE.Vector3(72, 0, 32);
+    var path = new THREE.QuadraticBezierCurve3(p0, p1, p2);
+    var SEG = 40;
+    var HALF_W = 3.5;
+
+    function deckY(t) { return 8 + 4 * Math.sin(Math.PI * t); } // 竖向起拱
+
+    function sideNormal(t) {
+      var tan = path.getTangent(t);
+      var nx = -tan.z;
+      var nz = tan.x;
+      var len = Math.sqrt(nx * nx + nz * nz) || 1;
+      return { x: nx / len, z: nz / len };
+    }
+
+    // 桥面（双面渲染兜底）
+    var positions = [];
+    var indices = [];
+    for (var i = 0; i <= SEG; i++) {
+      var t = i / SEG;
+      var p = path.getPoint(t);
+      var n = sideNormal(t);
+      var y = deckY(t);
+      positions.push(p.x + n.x * HALF_W, y, p.z + n.z * HALF_W);
+      positions.push(p.x - n.x * HALF_W, y, p.z - n.z * HALF_W);
+      if (i < SEG) {
+        var a = i * 2;
+        indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+      }
+    }
+    var deckGeo = new THREE.BufferGeometry();
+    deckGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    deckGeo.setIndex(indices);
+    deckGeo.computeVertexNormals();
+    g.add(new THREE.Mesh(deckGeo, new THREE.MeshLambertMaterial({
+      color: 0xd8d2c4, side: THREE.DoubleSide
+    })));
+
+    // 两点间连接管（吊杆用）
+    function tubeBetween(a, b, r, mat) {
+      var dir = new THREE.Vector3().subVectors(b, a);
+      var len = dir.length();
+      var m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 6), mat);
+      m.position.copy(a).addScaledVector(dir, 0.5);
+      m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize());
+      g.add(m);
+    }
+
+    // 桥墩
+    [0.25, 0.5, 0.75].forEach(function (t) {
+      var p = path.getPoint(t);
+      addCylinder(g, 1.6, 2.0, deckY(t), p.x, deckY(t) / 2, p.z, white, 10);
+    });
+
+    // 斜拱肋：拱顶向一侧倾斜（"岭南花舟"造型）
+    var archCurve = new THREE.QuadraticBezierCurve3(
+      new THREE.Vector3(p0.x + 4, deckY(0) + 1, p0.z),
+      new THREE.Vector3(p1.x + 26, 44, p1.z + 8),
+      new THREE.Vector3(p2.x + 4, deckY(1) + 1, p2.z)
+    );
+    g.add(new THREE.Mesh(new THREE.TubeGeometry(archCurve, 32, 1.1, 8, false), white));
+
+    // 吊杆：拱肋 → 桥面近拱侧边缘
+    for (var j = 1; j <= 11; j++) {
+      var ta = j / 12;
+      var pa = archCurve.getPoint(ta);
+      var pd = path.getPoint(ta);
+      var nd = sideNormal(ta);
+      var edge = new THREE.Vector3(pd.x + nd.x * (HALF_W - 0.3), deckY(ta), pd.z + nd.z * (HALF_W - 0.3));
+      if (pa.y - edge.y > 1.5) tubeBetween(pa, edge, 0.16, white);
+    }
+
+    // 两侧栏杆
+    [-HALF_W + 0.3, HALF_W - 0.3].forEach(function (side) {
+      var pts = [];
+      for (var i = 0; i <= SEG; i++) {
+        var t = i / SEG;
+        var p = path.getPoint(t);
+        var n = sideNormal(t);
+        pts.push(new THREE.Vector3(p.x + n.x * side, deckY(t) + 1.1, p.z + n.z * side));
+      }
+      g.add(new THREE.Mesh(
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), SEG, 0.15, 6, false), white
+      ));
+    });
+
+    return { group: g, height: 46 };
+  }
+
   /** 白云山：群峰。 */
   function buildBaiyun() {
     var g = new THREE.Group();
@@ -686,6 +788,7 @@ window.GZLandmarks = (function () {
     'liede': buildLiedeBridge,
     'ersha': buildErsha,
     'gz-bridge': buildGzBridge,
+    'haixin-bridge': buildHaixinBridge,
     'haizhu-bridge': buildHaizhuBridge,
     'memorial': buildMemorialHall,
     'chen-clan': buildChenClan,
