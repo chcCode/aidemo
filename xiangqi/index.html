@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中国象棋 · AI 对弈</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="page">
+    <h1>中国象棋</h1>
+    <div class="main">
+      <div id="board-wrap">
+        <svg id="grid" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div id="markers"></div>
+        <div id="pieces"></div>
+      </div>
+      <div class="panel">
+        <div class="control">
+          <label for="difficulty">难度</label>
+          <select id="difficulty">
+            <option value="easy">简单</option>
+            <option value="medium" selected>普通</option>
+            <option value="hard">困难</option>
+            <option value="master">大师</option>
+          </select>
+        </div>
+        <div class="control">
+          <label for="side">执子</label>
+          <select id="side">
+            <option value="red" selected>红方（先行）</option>
+            <option value="black">黑方（后行）</option>
+          </select>
+        </div>
+        <div class="control buttons">
+          <button id="new-game">新对局</button>
+          <button id="undo">悔棋</button>
+        </div>
+        <div id="status"></div>
+        <div id="ai-info"></div>
+        <h3>棋谱</h3>
+        <ol id="move-list"></ol>
+      </div>
+    </div>
+  </div>
+  <script src="js/engine.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
