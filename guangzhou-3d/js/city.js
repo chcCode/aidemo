@@ -47,7 +47,7 @@ window.GZCity = (function () {
     canvas.width = 256;
     canvas.height = 128;
     var ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#2e6b7a';
+    ctx.fillStyle = '#2b6ea6';
     ctx.fillRect(0, 0, 256, 128);
     var rand = makeRandom(42);
     for (var i = 0; i < 90; i++) {
