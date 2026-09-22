@@ -1,0 +1,179 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  background: #0d1420;
+}
+
+#app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+#scene {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- 左侧面板 ---------- */
+#panel {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 240px;
+  max-height: calc(100% - 32px);
+  overflow-y: auto;
+  background: rgba(15, 22, 34, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 14px;
+  color: #e8ecf2;
+  backdrop-filter: blur(6px);
+}
+
+#panel h1 {
+  margin: 0 0 10px;
+  font-size: 20px;
+  letter-spacing: 4px;
+  color: #ffd97a;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.actions button {
+  flex: 1;
+  padding: 6px 4px;
+  font-size: 13px;
+  border: none;
+  border-radius: 6px;
+  background: #4a6fa5;
+  color: #fff;
+  cursor: pointer;
+}
+
+.actions button:hover {
+  background: #5a7fb5;
+}
+
+.group-title {
+  margin: 10px 0 6px;
+  font-size: 12px;
+  color: #8fa3bd;
+  letter-spacing: 2px;
+}
+
+.landmark-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 4px;
+  padding: 7px 10px;
+  font-size: 14px;
+  color: #e8ecf2;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.landmark-item:hover {
+  background: rgba(255, 217, 122, 0.18);
+  border-color: rgba(255, 217, 122, 0.4);
+}
+
+.landmark-item.active {
+  background: rgba(255, 217, 122, 0.28);
+  border-color: #ffd97a;
+}
+
+/* ---------- 信息卡片 ---------- */
+#info-card {
+  position: absolute;
+  left: 16px;
+  bottom: 56px;
+  width: 320px;
+  background: rgba(15, 22, 34, 0.9);
+  border: 1px solid rgba(255, 217, 122, 0.5);
+  border-radius: 10px;
+  padding: 14px 16px;
+  color: #e8ecf2;
+  backdrop-filter: blur(6px);
+}
+
+#info-card.hidden {
+  display: none;
+}
+
+#info-card h2 {
+  margin: 0 24px 4px 0;
+  font-size: 18px;
+  color: #ffd97a;
+}
+
+#info-cat {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #8fa3bd;
+}
+
+#info-desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+#info-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#info-close:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* ---------- 小地图 ---------- */
+#minimap {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  background: rgba(15, 22, 34, 0.85);
+}
+
+/* ---------- 操作提示 ---------- */
+#hint {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  font-size: 12px;
+  color: #cfd8e6;
+  background: rgba(15, 22, 34, 0.7);
+  border-radius: 20px;
+  white-space: nowrap;
+}
