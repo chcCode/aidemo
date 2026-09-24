@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的世界 · 网页版</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: "Courier New", monospace; }
+  #game canvas { display: block; }
+  /* 准星 */
+  #crosshair { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 26px; line-height: 1; mix-blend-mode: difference; pointer-events: none; user-select: none; z-index: 10; }
+  /* 物品栏 */
+  #hotbar { position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; background: rgba(0,0,0,.55); padding: 3px; border: 2px solid #1a1a1a; outline: 2px solid #666; z-index: 10; }
+  .slot { width: 48px; height: 48px; border: 2px solid #4a4a4a; background: rgba(30,30,30,.65); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .slot.active { border-color: #fff; box-shadow: 0 0 8px rgba(255,255,255,.8); }
+  .slot canvas { width: 38px; height: 38px; image-rendering: pixelated; }
+  #item-name { position: fixed; bottom: 78px; left: 50%; transform: translateX(-50%); color: #fff; text-shadow: 2px 2px #000; font-size: 18px; opacity: 0; transition: opacity .35s; z-index: 10; pointer-events: none; }
+  /* 调试信息 */
+  #debug { position: fixed; top: 8px; left: 8px; color: #fff; text-shadow: 1px 1px #000; font-size: 13px; line-height: 1.6; white-space: pre; display: none; z-index: 10; background: rgba(0,0,0,.35); padding: 6px 8px; }
+  /* 帮助 */
+  #help { position: fixed; top: 8px; right: 8px; color: #eee; text-shadow: 1px 1px #000; font-size: 12px; text-align: right; z-index: 10; background: rgba(0,0,0,.35); padding: 6px 8px; line-height: 2; transition: opacity 1s; }
+  #help b, #overlay .controls b { color: #fff; background: #333; border: 1px solid #666; padding: 0 5px; margin: 0 1px; }
+  /* 菜单遮罩 */
+  #overlay { position: fixed; inset: 0; background: rgba(0,0,0,.74); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; color: #fff; }
+  #overlay h1 { font-size: 54px; color: #8ed04f; text-shadow: 4px 4px #2d4a12, 8px 8px rgba(0,0,0,.4); letter-spacing: 8px; margin-bottom: 6px; }
+  #overlay .sub { color: #ffff55; text-shadow: 2px 2px #3f3f00; margin-bottom: 30px; font-size: 15px; letter-spacing: 2px; }
+  #overlay button { font-family: inherit; font-size: 17px; padding: 10px 44px; margin: 6px; cursor: pointer; background: #707070; color: #fff; border: 2px solid #000; box-shadow: inset 2px 2px #a6a6a6, inset -2px -2px #4c4c4c; text-shadow: 1px 1px #333; }
+  #overlay button:hover { background: #5a8f3c; }
+  #overlay .controls { margin-top: 28px; font-size: 14px; line-height: 2.2; color: #bbb; text-align: center; }
+  /* 加载画面 */
+  #loading { position: fixed; inset: 0; background: #202020; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 30; color: #ddd; font-size: 15px; letter-spacing: 2px; }
+  #loading-bar-wrap { width: 340px; height: 16px; border: 2px solid #888; margin-top: 16px; background: #111; }
+  #loading-bar { height: 100%; width: 0%; background: #7fbf3f; transition: width .1s; }
+</style>
+</head>
+<body>
+  <div id="game"></div>
+  <div id="crosshair">+</div>
+  <div id="hotbar"></div>
+  <div id="item-name"></div>
+  <div id="debug"></div>
+  <div id="help"><b>WASD</b> 移动 · <b>空格</b> 跳跃 · <b>双击W</b> 疾跑<br><b>左键</b> 破坏 · <b>右键</b> 放置 · <b>1-9/滚轮</b> 切换方块<br><b>F</b> 飞行 · <b>F3</b> 调试 · <b>H</b> 隐藏提示 · <b>Esc</b> 菜单</div>
+  <div id="overlay">
+    <h1>我的世界</h1>
+    <div class="sub">MINECRAFT · 网页高还原版</div>
+    <button id="play-btn">进入世界</button>
+    <button id="reset-btn">重置世界</button>
+    <div class="controls">
+      <b>W A S D</b> 移动 &nbsp; <b>空格</b> 跳跃 &nbsp; <b>双击W</b> 疾跑 &nbsp; <b>Shift</b> 潜行<br>
+      <b>鼠标左键</b> 破坏方块 &nbsp; <b>鼠标右键</b> 放置方块 &nbsp; <b>1~9 / 滚轮</b> 切换物品<br>
+      <b>F</b> 开关飞行 &nbsp; <b>F3</b> 调试信息 &nbsp; <b>H</b> 隐藏提示 &nbsp; <b>Esc</b> 暂停菜单
+    </div>
+  </div>
+  <div id="loading">
+    <div>正在生成世界……</div>
+    <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
