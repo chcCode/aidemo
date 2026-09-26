@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>热血篮球 FC - Nekketsu Street Basket</title>
 <link rel="stylesheet" href="style.css">
 </head>
@@ -13,10 +14,22 @@
     2P：←/→ 移动 &nbsp; , 投篮/攻击 &nbsp; . 跳跃 &nbsp; / 传球 &nbsp;|&nbsp; Enter 开始/暂停
   </div>
 </div>
+
+<!-- 触屏控件（仅触摸设备显示） -->
+<div id="tc-stick"><div id="tc-knob"></div></div>
+<div id="tc-btns">
+  <div class="tc-btn" id="tc-pass">传</div>
+  <div class="tc-btn" id="tc-jump">跳</div>
+  <div class="tc-btn" id="tc-shoot">投</div>
+</div>
+<div id="tc-start">START</div>
+<div id="rotate-tip">请横屏游玩</div>
+
 <script src="js/constants.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/input.js"></script>
+<script src="js/touch.js"></script>
 <script src="js/sprites.js"></script>
 <script src="js/entities.js"></script>
 <script src="js/ai.js"></script>

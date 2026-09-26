@@ -27,3 +27,112 @@ html, body {
   font-size: 12px;
   letter-spacing: 1px;
 }
+
+/* ================= 触屏控件（默认隐藏，触摸设备显示） ================= */
+#tc-stick, #tc-btns, #tc-start, #rotate-tip { display: none; }
+
+body.touch #tc-stick,
+body.touch #tc-btns,
+body.touch #tc-start { display: block; }
+body.touch #hint { display: none; }
+
+/* 移动端画布自适应（保持 768:720 比例铺满） */
+body.touch #wrap { width: 100%; }
+body.touch #game {
+  width: min(100vw, calc(100vh * 1.0667));
+  height: auto;
+  border-width: 2px;
+}
+
+/* 虚拟摇杆（左下） */
+#tc-stick {
+  position: fixed;
+  left: 22px;
+  bottom: 26px;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.07);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  z-index: 10;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#tc-knob {
+  position: absolute;
+  left: 31px;
+  top: 31px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+}
+
+/* 虚拟按钮组（右下，FC 手柄布局） */
+#tc-btns {
+  position: fixed;
+  right: 18px;
+  bottom: 22px;
+  width: 180px;
+  height: 140px;
+  z-index: 10;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.tc-btn {
+  position: absolute;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: bold;
+  font-family: "Courier New", monospace;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  touch-action: none;
+}
+#tc-shoot { right: 0;   bottom: 34px; width: 66px; height: 66px; font-size: 20px; background: rgba(232, 56, 32, 0.4); }
+#tc-jump  { right: 80px; bottom: 0;   width: 66px; height: 66px; font-size: 20px; background: rgba(40, 72, 200, 0.4); }
+#tc-pass  { right: 92px; bottom: 82px; width: 50px; height: 50px; font-size: 15px; background: rgba(56, 180, 56, 0.4); }
+.tc-btn.active { background: rgba(255, 255, 255, 0.55); color: #101018; }
+
+/* START（顶部居中） */
+#tc-start {
+  position: fixed;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 16px;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 12px;
+  font-family: "Courier New", monospace;
+  letter-spacing: 2px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  z-index: 10;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#tc-start.active { background: rgba(255, 255, 255, 0.45); color: #101018; }
+
+/* 竖屏提示（仅触摸设备 + 竖屏时显示） */
+#rotate-tip {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(8, 8, 16, 0.92);
+  color: #f8d838;
+  font-size: 22px;
+  letter-spacing: 6px;
+  align-items: center;
+  justify-content: center;
+}
+@media (orientation: portrait) {
+  body.touch #rotate-tip { display: flex; }
+}

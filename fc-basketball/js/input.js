@@ -23,14 +23,22 @@ NB.Input = {
 
   flush() { this.pressed = {}; },
 
-  /* 读取虚拟手柄。P 后缀为按下沿（单发），否则为按住 */
+  /* 读取虚拟手柄。P 后缀为按下沿（单发），否则为按住。
+   * 1P 合并触屏输入（Touch* 虚拟键码由 touch.js 写入）。 */
   pad(idx) {
     const k = this.keys, p = this.pressed;
     if (idx === 0) {
       return {
-        left: !!k.KeyA, right: !!k.KeyD, up: !!k.KeyW, down: !!k.KeyS,
-        shoot: !!k.KeyJ, jump: !!k.KeyK, pass: !!k.KeyL,
-        shootP: !!p.KeyJ, jumpP: !!p.KeyK, passP: !!p.KeyL,
+        left:  !!k.KeyA || !!k.TouchLeft,
+        right: !!k.KeyD || !!k.TouchRight,
+        up:    !!k.KeyW || !!k.TouchUp,
+        down:  !!k.KeyS || !!k.TouchDown,
+        shoot: !!k.KeyJ || !!k.TouchShoot,
+        jump:  !!k.KeyK || !!k.TouchJump,
+        pass:  !!k.KeyL || !!k.TouchPass,
+        shootP: !!p.KeyJ || !!p.TouchShoot,
+        jumpP:  !!p.KeyK || !!p.TouchJump,
+        passP:  !!p.KeyL || !!p.TouchPass,
       };
     }
     return {
@@ -40,12 +48,12 @@ NB.Input = {
     };
   },
 
-  /* 菜单用（1P + 方向键通用） */
-  menuUp()    { return !!(this.pressed.KeyW || this.pressed.ArrowUp); },
-  menuDown()  { return !!(this.pressed.KeyS || this.pressed.ArrowDown); },
-  menuLeft()  { return !!(this.pressed.KeyA || this.pressed.ArrowLeft); },
-  menuRight() { return !!(this.pressed.KeyD || this.pressed.ArrowRight); },
-  menuOk()    { return !!(this.pressed.Enter || this.pressed.KeyJ); },
-  menuOk2()   { return !!(this.pressed.Comma || this.pressed.Enter); },  // 2P 确认
-  startP()    { return !!this.pressed.Enter; },
+  /* 菜单用（键盘 + 触屏摇杆/按钮通用） */
+  menuUp()    { return !!(this.pressed.KeyW || this.pressed.ArrowUp || this.pressed.TouchUp); },
+  menuDown()  { return !!(this.pressed.KeyS || this.pressed.ArrowDown || this.pressed.TouchDown); },
+  menuLeft()  { return !!(this.pressed.KeyA || this.pressed.ArrowLeft || this.pressed.TouchLeft); },
+  menuRight() { return !!(this.pressed.KeyD || this.pressed.ArrowRight || this.pressed.TouchRight); },
+  menuOk()    { return !!(this.pressed.Enter || this.pressed.KeyJ || this.pressed.TouchShoot || this.pressed.TouchStart); },
+  menuOk2()   { return !!(this.pressed.Comma || this.pressed.Enter || this.pressed.TouchStart); },  // 2P 确认
+  startP()    { return !!(this.pressed.Enter || this.pressed.TouchStart); },
 };
