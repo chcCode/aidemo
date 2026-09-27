@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>打地鼠 · 金山打字游戏经典还原</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="wrap">
+  <div id="stage">
+    <div id="shake">
+
+      <!-- 天空背景 -->
+      <div class="sky"></div>
+      <div class="sun"><div class="rays"></div><div class="core"></div></div>
+      <div class="cloud c1"></div>
+      <div class="cloud c2"></div>
+      <div class="cloud c3"></div>
+      <div class="hill h1"></div>
+      <div class="hill h2"></div>
+      <div class="field"></div>
+      <div class="fence">
+        <div class="posts"></div>
+        <div class="rail r1"></div>
+        <div class="rail r2"></div>
+      </div>
+
+      <!-- 草地装饰 -->
+      <div class="tuft" style="left:255px; top:300px"></div>
+      <div class="tuft" style="left:500px; top:288px"></div>
+      <div class="tuft" style="left:745px; top:302px"></div>
+      <div class="tuft" style="left:28px;  top:438px"></div>
+      <div class="tuft" style="left:252px; top:442px"></div>
+      <div class="tuft" style="left:498px; top:448px"></div>
+      <div class="tuft" style="left:742px; top:438px"></div>
+      <div class="tuft" style="left:962px; top:442px"></div>
+      <div class="tuft" style="left:243px; top:588px"></div>
+      <div class="tuft" style="left:498px; top:592px"></div>
+      <div class="tuft" style="left:748px; top:586px"></div>
+      <div class="flower" style="left:262px; top:348px"></div>
+      <div class="flower w" style="left:508px; top:342px"></div>
+      <div class="flower" style="left:758px; top:352px"></div>
+      <div class="flower w" style="left:42px;  top:556px"></div>
+      <div class="flower" style="left:948px; top:552px"></div>
+      <div class="flower w" style="left:243px; top:612px"></div>
+      <div class="flower" style="left:748px; top:614px"></div>
+      <div class="rock" style="left:255px; top:520px"></div>
+      <div class="rock" style="left:735px; top:525px"></div>
+
+      <!-- 地鼠洞由 JS 生成 -->
+
+      <!-- 特效层 -->
+      <div id="fx"></div>
+      <div id="flash"></div>
+
+      <!-- 顶部 HUD -->
+      <div id="hud">
+        <div class="hud-box score-box">
+          <span class="label">得分</span><span id="score">000000</span>
+        </div>
+        <div class="hud-box time-box">
+          <span class="label">时间</span>
+          <div class="timebar"><div id="timefill"></div></div>
+          <span id="time">90</span>
+        </div>
+        <div class="hud-box">
+          <span class="label">等级</span><span id="level">1</span>
+        </div>
+        <div class="hud-box combo-box"><span id="combo"></span></div>
+        <div class="hud-btns">
+          <button id="btn-sound" class="mini-btn" type="button">音效开</button>
+          <button id="btn-pause" class="mini-btn" type="button">暂停</button>
+        </div>
+      </div>
+
+      <div id="toast"></div>
+
+      <!-- 跟随鼠标的锤子 -->
+      <div id="hammer"></div>
+
+      <!-- 标题界面 -->
+      <div id="overlay-title" class="overlay">
+        <div class="panel">
+          <div class="mascot"></div>
+          <h1 class="logo"><span>打</span><span>地</span><span>鼠</span></h1>
+          <div class="subtitle">金山打字游戏 · 经典还原</div>
+          <div class="rules">
+            <p>地鼠举着字母牌钻出洞口，按下<b>对应字母键</b>敲击它！</p>
+            <p>限时 <b>90</b> 秒，每 <b>15</b> 秒提升一级，地鼠越来越快</p>
+            <p>字母从基准键位 <b>ASDF JKL</b> 开始，逐步扩展到全键盘</p>
+            <p>击中得分、连击加成；漏接中断连击；<b>Esc</b> 暂停</p>
+          </div>
+          <div class="best">历史最佳：<span id="best-score-title">0</span> 分</div>
+          <div class="btn-row">
+            <button class="btn big" id="btn-start" type="button">开始游戏</button>
+            <button class="btn big ghost" id="btn-settings" type="button">游戏设置</button>
+          </div>
+          <div class="hint">按 Enter 快速开始</div>
+        </div>
+      </div>
+
+      <!-- 倒计时 -->
+      <div id="overlay-count" class="overlay hidden">
+        <div id="count-num">3</div>
+      </div>
+
+      <!-- 暂停 -->
+      <div id="overlay-pause" class="overlay hidden">
+        <div class="panel small">
+          <div class="panel-title">游戏暂停</div>
+          <button class="btn" id="btn-resume" type="button">继续游戏</button>
+          <div class="hint">按 Esc 继续</div>
+        </div>
+      </div>
+
+      <!-- 设置界面（仿金山经典蓝色标题栏） -->
+      <div id="overlay-settings" class="overlay hidden">
+        <div class="panel settings-panel">
+          <div class="set-header">游 戏 设 置</div>
+
+          <div class="set-group">
+            <div class="set-label">地鼠停留时间：<span id="stay-val">2.3</span> 秒</div>
+            <input type="range" id="set-stay" min="1.0" max="3.0" step="0.1" value="2.3">
+            <div class="set-note">地鼠钻出洞口后的停留时长，随关卡提升逐渐缩短</div>
+          </div>
+
+          <div class="set-group">
+            <div class="set-label">键位范围</div>
+            <div class="radio-row" id="set-keys">
+              <label><input type="radio" name="keys" value="progressive" checked><span>渐进模式</span></label>
+              <label><input type="radio" name="keys" value="home"><span>基准键位</span></label>
+              <label><input type="radio" name="keys" value="top"><span>上排键位</span></label>
+              <label><input type="radio" name="keys" value="bottom"><span>下排键位</span></label>
+              <label><input type="radio" name="keys" value="all"><span>全部键位</span></label>
+            </div>
+            <div class="set-note" id="keys-note">ASDF JKL 起步，随关卡逐步扩展</div>
+          </div>
+
+          <div class="set-group">
+            <div class="set-label">难度等级</div>
+            <div class="radio-row" id="set-diff">
+              <label><input type="radio" name="diff" value="easy"><span>简单</span></label>
+              <label><input type="radio" name="diff" value="normal" checked><span>普通</span></label>
+              <label><input type="radio" name="diff" value="hard"><span>困难</span></label>
+            </div>
+            <div class="set-note">影响地鼠出没频率与同屏数量</div>
+          </div>
+
+          <div class="set-group">
+            <label class="check-line"><input type="checkbox" id="set-sound" checked><span>开启音效</span></label>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn" id="btn-settings-ok" type="button">完成</button>
+            <button class="btn ghost" id="btn-settings-default" type="button">恢复默认</button>
+          </div>
+          <div class="hint">按 Esc 保存并返回</div>
+        </div>
+      </div>
+
+      <!-- 结算界面 -->
+      <div id="overlay-over" class="overlay hidden">
+        <div class="panel">
+          <div class="panel-title">时间到！</div>
+          <div class="rating" id="final-rating">S</div>
+          <div id="new-record" class="hidden">新纪录！</div>
+          <div class="stats">
+            <div class="stat"><span class="k">最终得分</span><span class="v" id="final-score">0</span></div>
+            <div class="stat"><span class="k">击中地鼠</span><span class="v" id="final-hits">0</span></div>
+            <div class="stat"><span class="k">漏网之鼠</span><span class="v" id="final-escaped">0</span></div>
+            <div class="stat"><span class="k">按键正确率</span><span class="v" id="final-acc">0%</span></div>
+            <div class="stat"><span class="k">打字速度</span><span class="v" id="final-kpm">0</span></div>
+            <div class="stat"><span class="k">最高连击</span><span class="v" id="final-combo">0</span></div>
+          </div>
+          <div class="best">历史最佳：<span id="best-score-over">0</span> 分</div>
+          <div class="btn-row">
+            <button class="btn" id="btn-restart" type="button">再来一局</button>
+            <button class="btn ghost" id="btn-back" type="button">返回标题</button>
+          </div>
+          <div class="hint">按 Enter 快速再来一局</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="game.js"></script>
+</body>
+</html>
