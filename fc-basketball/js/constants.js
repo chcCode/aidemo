@@ -1,33 +1,42 @@
 /* ============================================================
- * 热血篮球 FC —— Nekketsu Street Basket 风格复刻
- * constants.js : 全局常量与队伍数据
+ * 热血篮球 FC —— Nekketsu Street Basket 风格复刻（伪 3D 版）
+ * constants.js : 全局常量 / 三维投影 / 队伍数据
+ *
+ * 坐标系（伪三维）：
+ *   x : 场地横向   0 ~ FIELD_W（左 -> 右）
+ *   y : 场地纵深   0 ~ FIELD_D（0=远端/屏幕上方，FIELD_D=近端/屏幕下方）
+ *   z : 高度       0=地面，向上为正（跳跃、球飞行）
+ * 屏幕投影：sy = FAR_Y + y*SLOPE - z；精灵按 scale(y) 近大远小。
  * ============================================================ */
 window.NB = window.NB || {};
 
 /* ---------- 基础常量 ---------- */
 NB.C = {
   W: 256, H: 240, SCALE: 3,   // 逻辑分辨率（FC 256x240）与整数倍放大
-  FIELD_W: 480,               // 场地逻辑宽度（约两屏，横向卷轴）
-  GROUND_Y: 208,              // 地面 y 坐标
-  GRAVITY: 0.45,              // 重力加速度 px/f^2
+  FIELD_W: 480,               // 场地横向宽度（约两屏，横向卷轴）
+  FIELD_D: 88,                // 场地纵深
+  FAR_Y: 124,                 // 远端地面屏幕 y
+  NEAR_Y: 214,                // 近端地面屏幕 y
+  GRAVITY: 0.45,              // z 轴重力 px/f^2
   HUD_H: 22,                  // 顶部记分牌高度
 
   MATCH_TIME: 180,            // 常规时间（秒）
   OT_TIME: 30,                // 加时（金球制）
 
-  P_W: 12, P_H: 26,           // 球员碰撞盒
+  P_W: 12, P_D: 8, P_H: 26,   // 球员碰撞盒：宽 / 纵深 / 高
   BALL_R: 4,                  // 球半径
 
-  /* 篮架：左右对称，立柱上 3 层篮筐（下 2 分 / 中 3 分 / 上 4 分） */
+  /* 篮架：左右两端、纵深居中，立柱上 3 层篮筐（下 2 分 / 中 3 分 / 上 4 分） */
   HOOP: {
-    POLE_L: 12,               // 左立柱中心 x
-    POLE_R: 480 - 12,         // 右立柱中心 x
+    POLE_L: 12,               // 左立柱 x
+    POLE_R: 480 - 12,         // 右立柱 x
+    MID_Y: 44,                // 篮架纵深（场地中央）
+    RIM_R: 7,                 // 筐口平面半径
     BOARD_W: 3,               // 篮板厚度
-    RIM_LEN: 12,              // 筐口挑出长度（筐口宽）
     LEVELS: [
-      { y: 172, score: 2 },
-      { y: 136, score: 3 },
-      { y: 100, score: 4 },
+      { z: 36,  score: 2 },
+      { z: 72,  score: 3 },
+      { z: 108, score: 4 },
     ],
   },
 
@@ -36,17 +45,30 @@ NB.C = {
   MAX_ITEMS: 2,
 };
 
-/* 由篮架常量推导出的几何（左架 / 右架镜像） */
+/* 篮架几何（左架筐朝右 / 右架镜像） */
 NB.C.HOOP_GEO = (function () {
-  const H = NB.C.HOOP, G = NB.C;
-  function side(poleX, dir) {           // dir: +1 左架（筐朝右） / -1 右架
-    const boardX = poleX + dir * 2;     // 篮板内沿 x
-    const rimX1 = dir > 0 ? boardX + H.BOARD_W : boardX - H.RIM_LEN;
-    const rimX2 = rimX1 + H.RIM_LEN;    // 筐口 [rimX1, rimX2]
-    return { poleX, boardX, rimX1, rimX2, rimCX: (rimX1 + rimX2) / 2 };
+  const H = NB.C.HOOP;
+  function side(poleX, dir) {
+    const boardX = poleX + dir * 2;              // 篮板内沿 x
+    const rimX = boardX + dir * (H.BOARD_W + H.RIM_R);  // 筐心 x
+    return { poleX, boardX, rimX, dir };
   }
   return { left: side(H.POLE_L, 1), right: side(H.POLE_R, -1) };
 })();
+
+/* ---------- 伪 3D 投影 ----------
+ * sx：世界 x（绘制层统一减 cam）
+ * sy：世界 (y 纵深, z 高度) -> 屏幕 y
+ * scale：按纵深近大远小
+ */
+NB.proj = {
+  sy(y, z) {
+    return NB.C.FAR_Y + y * (NB.C.NEAR_Y - NB.C.FAR_Y) / NB.C.FIELD_D - z;
+  },
+  scale(y) {
+    return 0.8 + 0.3 * (y / NB.C.FIELD_D);
+  },
+};
 
 /* ---------- 队伍数据 ----------
  * sp 速度 / jp 跳跃 / pw 力量 / sh 投篮（1~5）

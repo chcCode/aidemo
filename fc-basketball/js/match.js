@@ -1,8 +1,10 @@
-/* match.js : 比赛流程（跳球 / 进行 / 得分 / 发球 / 加时金球 / 终场） */
+/* match.js : 比赛流程（跳球 / 进行 / 得分 / 发球 / 加时金球 / 终场）
+ * 伪 3D：实体按纵深 y 排序绘制（远先近后），篮架为立体椭圆筐。
+ */
 window.NB = window.NB || {};
 
 (function () {
-  const C = NB.C, U = NB.U, A = NB.Audio, F = NB.Font;
+  const C = NB.C, U = NB.U, A = NB.Audio, F = NB.Font, PJ = NB.proj;
 
   class Match {
     /* opt: { mode:'1p'|'2p'|'vs', teamL, teamR, stage } */
@@ -41,50 +43,51 @@ window.NB = window.NB || {};
 
     /* ---------------- 站位 ---------------- */
     _placeKickoff() {
-      const P = this.players;
-      P[0].x = 150; P[1].x = 105;
-      P[2].x = 320; P[3].x = 365;
+      const P = this.players, M = C.HOOP.MID_Y;
+      P[0].x = 150; P[0].y = M - 10;
+      P[1].x = 105; P[1].y = M + 12;
+      P[2].x = 320; P[2].y = M - 10;
+      P[3].x = 365; P[3].y = M + 12;
       for (const p of P) {
-        p.y = C.GROUND_Y - C.P_H; p.vx = 0; p.vy = 0;
+        p.z = 0; p.vx = 0; p.vy = 0; p.vz = 0;
         p.face = p.tIdx === 0 ? 1 : -1;
         p.state = 'idle'; p.stateT = 0; p.hasBall = false;
       }
-      this.ball.x = C.FIELD_W / 2; this.ball.y = 70;
-      this.ball.vx = 0; this.ball.vy = 0;
+      this.ball.x = C.FIELD_W / 2; this.ball.y = M; this.ball.z = 60;
+      this.ball.vx = 0; this.ball.vy = 0; this.ball.vz = 0;
       this.ball.holder = null; this.ball.state = 'free';
     }
 
     _inbound() {
-      const l = this._loserIdx, w = 1 - l;
+      const l = this._loserIdx, w = 1 - l, M = C.HOOP.MID_Y;
       const lp0 = this.players[l * 2], lp1 = this.players[l * 2 + 1];
       const wp0 = this.players[w * 2], wp1 = this.players[w * 2 + 1];
       const ownGeo = C.HOOP_GEO[l === 0 ? 'left' : 'right'];
       const dir = l === 0 ? 1 : -1;
 
-      lp0.x = ownGeo.rimCX + dir * 34 - C.P_W / 2;
-      lp0.y = C.GROUND_Y - C.P_H;
-      lp0.face = dir; lp0.vx = 0; lp0.vy = 0;
-      lp0.state = 'idle'; lp0.stateT = 0;
+      const reset = (p, x, y, face) => {
+        p.x = x; p.y = y; p.z = 0;
+        p.vx = 0; p.vy = 0; p.vz = 0;
+        p.face = face; p.state = 'idle'; p.stateT = 0;
+      };
+      reset(lp0, ownGeo.rimX + dir * 34, M, dir);
       lp0.hasBall = true; lp0.invuln = 90;
       this.ball.holder = lp0; this.ball.state = 'held'; this.ball.noCatch = 0; this.ball.goalHoop = null;
 
-      lp1.x = C.FIELD_W / 2 + dir * 40; lp1.y = C.GROUND_Y - C.P_H;
-      lp1.face = dir; lp1.vx = 0; lp1.vy = 0; lp1.state = 'idle'; lp1.stateT = 0;
-      wp0.x = C.FIELD_W / 2 - dir * 46; wp0.y = C.GROUND_Y - C.P_H;
-      wp0.face = -dir; wp0.vx = 0; wp0.vy = 0; wp0.state = 'idle'; wp0.stateT = 0;
-      wp1.x = C.FIELD_W / 2 - dir * 90; wp1.y = C.GROUND_Y - C.P_H;
-      wp1.face = -dir; wp1.vx = 0; wp1.vy = 0; wp1.state = 'idle'; wp1.stateT = 0;
+      reset(lp1, C.FIELD_W / 2 + dir * 40, M - 16, dir);
+      reset(wp0, C.FIELD_W / 2 - dir * 46, M + 14, -dir);
+      reset(wp1, C.FIELD_W / 2 - dir * 90, M - 14, -dir);
 
       this.state = 'play'; this.stateT = 0;
     }
 
     /* ---------------- 特效 ---------------- */
-    burst(x, y, n, color) {
+    burst(x, y, z, n, color) {
       for (let i = 0; i < n; i++) {
         const a = Math.random() * Math.PI * 2;
         const v = U.rand(0.5, 2.2);
-        this.parts.push(new NB.Particle(x, y, Math.cos(a) * v, Math.sin(a) * v - 1,
-          U.randInt(14, 30), color, U.randInt(1, 3), 0.08));
+        this.parts.push(new NB.Particle(x, y, z, Math.cos(a) * v, Math.sin(a) * v * 0.5,
+          U.rand(1, 3), U.randInt(14, 30), color, U.randInt(1, 3), 0.08));
       }
     }
 
@@ -99,7 +102,7 @@ window.NB = window.NB || {};
       this.msg = 'GOAL! +' + hoop.score;
       this.msgT = 80;
       this.state = 'goal'; this.stateT = 0;
-      this.burst(hoop.geo.rimCX, hoop.y, 8, '#ffffff');
+      this.burst(hoop.geo.rimX, C.HOOP.MID_Y, hoop.z, 8, '#ffffff');
       A.score();
       if (this.ot) this.finish();                  // 加时金球
     }
@@ -107,8 +110,8 @@ window.NB = window.NB || {};
     dunkScore(player, hoop) {
       player.hasBall = false;
       this.ball.dunkInto(hoop);
-      this.burst(hoop.geo.rimCX, hoop.y, 10, '#f88818');
-      this.burst(hoop.geo.rimCX, hoop.y + 4, 6, '#f8f828');
+      this.burst(hoop.geo.rimX, C.HOOP.MID_Y, hoop.z, 10, '#f88818');
+      this.burst(hoop.geo.rimX, C.HOOP.MID_Y, hoop.z - 4, 6, '#f8f828');
       this.shake = 8;
       A.dunk();
       this.goal(hoop, player);
@@ -124,7 +127,7 @@ window.NB = window.NB || {};
       };
       if (winner >= 0) {
         for (const p of this.players) {
-          if (p.tIdx === winner) { p.state = 'win'; p.stateT = 0; p.vx = 0; }
+          if (p.tIdx === winner) { p.state = 'win'; p.stateT = 0; p.vx = 0; p.vy = 0; }
         }
       }
     }
@@ -155,7 +158,7 @@ window.NB = window.NB || {};
           /* 道具刷新 */
           if (--this.itemTimer <= 0 && this.items.filter(i => !i.dead).length < C.MAX_ITEMS) {
             const type = C.ITEM_TYPES[U.randInt(0, C.ITEM_TYPES.length - 1)];
-            this.items.push(new NB.Item(this, type, U.rand(60, C.FIELD_W - 60)));
+            this.items.push(new NB.Item(this, type, U.rand(60, C.FIELD_W - 60), U.rand(16, C.FIELD_D - 16)));
             this.itemTimer = U.randInt(C.ITEM_MIN, C.ITEM_MAX);
           }
           break;
@@ -178,7 +181,7 @@ window.NB = window.NB || {};
       for (const pt of this.parts) pt.update();
       this.parts = this.parts.filter(p => !p.dead);
 
-      /* 摄像机跟随球 */
+      /* 摄像机跟随球（横向卷轴） */
       const target = this.ball.x + (this.ball.holder ? this.ball.holder.face * 24 : 0);
       this.cam = U.clamp(U.lerp(this.cam, target - C.W / 2, 0.08), 0, C.FIELD_W - C.W);
       if (this.shake > 0) this.shake--;
@@ -219,16 +222,16 @@ window.NB = window.NB || {};
     _collisions() {
       const b = this.ball;
 
-      /* 接球 */
-      if (b.canCatch()) {
+      /* 接球（平面接近 + 高度可及） */
+      if (b.canCatch() && b.z < C.P_H + 10) {
         const speed = Math.hypot(b.vx, b.vy);
         if (b.state === 'pass' || speed < 7) {
           for (const p of this.players) {
             if (p.hasBall) continue;
             if (['down', 'dizzy', 'hit', 'punch', 'shoot', 'dunk', 'win'].indexOf(p.state) >= 0) continue;
-            if (U.overlap(p.x - 2, p.y - 6, C.P_W + 4, C.P_H + 6, b.x - 4, b.y - 4, 8, 8)) {
+            if (Math.abs(p.x - b.x) < 9 && Math.abs(p.y - b.y) < 8) {
               p.hasBall = true; b.holder = p; b.state = 'held';
-              b.vx = 0; b.vy = 0;
+              b.vx = 0; b.vy = 0; b.vz = 0;
               break;
             }
           }
@@ -237,13 +240,14 @@ window.NB = window.NB || {};
 
       /* 踩人（下落踩到头顶弹起，敌方受伤） */
       for (const a of this.players) {
-        if (a.vy <= 1.5 || a.state === 'dunk' || a.state === 'down') continue;
+        if (a.vz >= -1.5 || a.state === 'dunk' || a.state === 'down') continue;
         for (const c of this.players) {
           if (a === c || c.state === 'down' || c.state === 'dizzy') continue;
-          if (U.overlap(a.x, a.y + C.P_H - 4, C.P_W, 6, c.x, c.y - 2, C.P_W, 8)) {
-            a.vy = -a.jmp * 0.8; a.onGround = false; a.state = 'air'; a.stateT = 0;
-            if (c.tIdx !== a.tIdx) c.takeHit(14, U.sign(c.cx - a.cx), false);
-            this.burst(c.cx, c.y, 4, '#ffffff');
+          const dz = a.z - c.z;
+          if (Math.abs(a.x - c.x) < 10 && Math.abs(a.y - c.y) < 7 && dz > 14 && dz < 30) {
+            a.vz = a.jmp * 0.8; a.state = 'air'; a.stateT = 0;
+            if (c.tIdx !== a.tIdx) c.takeHit(14, U.sign(c.x - a.x), false);
+            this.burst(c.x, c.y, c.z + C.P_H, 4, '#ffffff');
             A.bounce();
           }
         }
@@ -254,8 +258,8 @@ window.NB = window.NB || {};
         if (p.hasBall || p.item) continue;
         if (['down', 'dizzy', 'hit', 'punch', 'shoot', 'dunk', 'win'].indexOf(p.state) >= 0) continue;
         for (const it of this.items) {
-          if (it.heldBy || it.thrown || it.armed || it.dead || it.vy !== 0) continue;
-          if (U.overlap(p.x, p.y, C.P_W, C.P_H, it.x - 2, it.y - 4, it.w + 4, it.h + 4)) {
+          if (it.heldBy || it.thrown || it.armed || it.dead || it.z > 4) continue;
+          if (Math.abs(p.x - (it.x + it.w / 2)) < 9 && Math.abs(p.y - it.y) < 7) {
             it.heldBy = p; p.item = it;
             A.pick();
             break;
@@ -270,45 +274,75 @@ window.NB = window.NB || {};
       const shY = this.shake > 0 ? U.rand(-1.5, 1.5) * this.shake / 6 : 0;
 
       ctx.save();
-      ctx.translate(Math.round(-this.cam + shX), Math.round(shY));
+      ctx.translate(Math.round(shX), Math.round(shY));
       this.stage.draw(ctx, this.cam, this.tick);
-      this._drawHoops(ctx);
-      for (const it of this.items) it.draw(ctx);
-      for (const p of this.players) p.draw(ctx);
-      this.ball.draw(ctx);
-      for (const pt of this.parts) pt.draw(ctx);
+
+      /* 深度排序：按纵深 y 远先近后 */
+      const list = [];
+      for (const p of this.players) list.push({ y: p.y, d: p });
+      for (const it of this.items) list.push({ y: it.y, d: it });
+      list.push({ y: this.ball.y, d: this.ball });
+      list.push({ y: C.HOOP.MID_Y - 0.5, d: 'hoopL' });
+      list.push({ y: C.HOOP.MID_Y - 0.5, d: 'hoopR' });
+      list.sort((a, b) => a.y - b.y);
+      for (const e of list) {
+        if (e.d === 'hoopL') this._drawHoop(ctx, 'left');
+        else if (e.d === 'hoopR') this._drawHoop(ctx, 'right');
+        else e.d.draw(ctx, this.cam);
+      }
+      for (const pt of this.parts) pt.draw(ctx, this.cam);
       ctx.restore();
 
       this._drawHud(ctx);
     }
 
-    _drawHoops(ctx) {
-      for (const sideName of ['left', 'right']) {
-        const geo = C.HOOP_GEO[sideName];
-        const topY = C.HOOP.LEVELS[2].y - 18;
-        /* 立柱与底座 */
+    /* 立体篮架：立柱 + 篮板 + 椭圆筐环 + 网 */
+    _drawHoop(ctx, sideName) {
+      const geo = C.HOOP_GEO[sideName];
+      const MID = C.HOOP.MID_Y;
+      const s = PJ.scale(MID);
+      const baseY = PJ.sy(MID, 0);
+      const topZ = C.HOOP.LEVELS[2].z + 16;
+      const px = geo.poleX - this.cam;
+
+      /* 底座与立柱 */
+      ctx.fillStyle = '#484850';
+      ctx.fillRect(px - 5, baseY - 3, 10, 3);
+      ctx.fillStyle = '#585860';
+      ctx.fillRect(px - 1.5, PJ.sy(MID, topZ), 3, baseY - PJ.sy(MID, topZ));
+      ctx.fillStyle = '#787880';
+      ctx.fillRect(px - 1.5, PJ.sy(MID, topZ), 1, baseY - PJ.sy(MID, topZ));
+
+      for (const lv of C.HOOP.LEVELS) {
+        const rimSY = PJ.sy(MID, lv.z);
+        /* 篮板（面向场内的竖板） */
+        const bx = (sideName === 'left' ? geo.boardX : geo.boardX - C.HOOP.BOARD_W) - this.cam;
         ctx.fillStyle = '#585860';
-        ctx.fillRect(geo.poleX - 2, topY, 4, C.GROUND_Y - topY);
-        ctx.fillStyle = '#787880';
-        ctx.fillRect(geo.poleX - 2, topY, 1, C.GROUND_Y - topY);
-        ctx.fillStyle = '#484850';
-        ctx.fillRect(geo.poleX - 5, C.GROUND_Y - 4, 10, 4);
-        for (const lv of C.HOOP.LEVELS) {
-          /* 篮板 */
-          const bx = sideName === 'left' ? geo.boardX : geo.boardX - C.HOOP.BOARD_W;
-          ctx.fillStyle = '#f8f8f8';
-          ctx.fillRect(bx, lv.y - 15, C.HOOP.BOARD_W, 16);
-          ctx.fillStyle = '#c82838';
-          ctx.fillRect(bx, lv.y - 8, C.HOOP.BOARD_W, 5);
-          /* 筐环 */
-          ctx.fillStyle = '#e85818';
-          ctx.fillRect(geo.rimX1, lv.y, C.HOOP.RIM_LEN, 2);
-          /* 网 */
-          ctx.fillStyle = '#e8e8e8';
-          for (let i = 0; i < 3; i++) ctx.fillRect(geo.rimX1 + 1 + i * 5, lv.y + 2, 1, 6);
-          ctx.fillRect(geo.rimX1 + 1, lv.y + 4, C.HOOP.RIM_LEN - 2, 1);
-          ctx.fillRect(geo.rimX1 + 3, lv.y + 7, C.HOOP.RIM_LEN - 6, 1);
+        ctx.fillRect(Math.min(px, bx), rimSY - 10, Math.abs(bx - px) + C.HOOP.BOARD_W, 2);  // 连接杆
+        ctx.fillStyle = '#f8f8f8';
+        ctx.fillRect(bx, rimSY - 14, C.HOOP.BOARD_W, 15);
+        ctx.fillStyle = '#c82838';
+        ctx.fillRect(bx, rimSY - 7, C.HOOP.BOARD_W, 4);
+        /* 筐环（水平圆环 -> 椭圆） */
+        const rx = geo.rimX - this.cam;
+        const rr = C.HOOP.RIM_R * s;
+        ctx.strokeStyle = '#e85818';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(rx, rimSY, rr, rr * 0.38, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        /* 网 */
+        ctx.strokeStyle = '#e8e8e8';
+        ctx.lineWidth = 1;
+        for (let i = -1; i <= 1; i++) {
+          ctx.beginPath();
+          ctx.moveTo(rx + i * rr * 0.6, rimSY + 1);
+          ctx.lineTo(rx + i * rr * 0.35, rimSY + 7);
+          ctx.stroke();
         }
+        ctx.beginPath();
+        ctx.ellipse(rx, rimSY + 7, rr * 0.4, rr * 0.18, 0, 0, Math.PI);
+        ctx.stroke();
       }
     }
 
@@ -332,28 +366,28 @@ window.NB = window.NB || {};
 
       /* 中央提示信息 */
       if (this.state === 'tipoff') {
-        if (Math.floor(this.tick / 15) % 2 === 0) F.drawCenter(ctx, 'READY?', C.W / 2, 100, '#ffffff', 2);
+        if (Math.floor(this.tick / 15) % 2 === 0) F.drawCenter(ctx, 'READY?', C.W / 2, 70, '#ffffff', 2);
       }
       if (this.msgT > 0 && this.msg) {
-        F.drawCenter(ctx, this.msg, C.W / 2, 96, '#f8d838', 2);
+        F.drawCenter(ctx, this.msg, C.W / 2, 66, '#f8d838', 2);
       }
       if (this.state === 'over' && this.result) {
         const r = this.result;
         ctx.fillStyle = 'rgba(0,0,16,0.75)';
-        ctx.fillRect(38, 70, 180, 92);
+        ctx.fillRect(38, 60, 180, 92);
         ctx.fillStyle = '#f8f8f8';
-        ctx.fillRect(38, 70, 180, 2); ctx.fillRect(38, 160, 180, 2);
-        ctx.fillRect(38, 70, 2, 92); ctx.fillRect(216, 70, 2, 92);
-        F.drawCenter(ctx, 'GAME SET', C.W / 2, 80, '#f8d838', 2);
-        F.drawCenter(ctx, r.teamL.short + ' ' + r.scoreL + ' - ' + r.scoreR + ' ' + r.teamR.short, C.W / 2, 106, '#ffffff', 1);
+        ctx.fillRect(38, 60, 180, 2); ctx.fillRect(38, 150, 180, 2);
+        ctx.fillRect(38, 60, 2, 92); ctx.fillRect(216, 60, 2, 92);
+        F.drawCenter(ctx, 'GAME SET', C.W / 2, 70, '#f8d838', 2);
+        F.drawCenter(ctx, r.teamL.short + ' ' + r.scoreL + ' - ' + r.scoreR + ' ' + r.teamR.short, C.W / 2, 96, '#ffffff', 1);
         if (r.winner >= 0) {
           const wt = r.winner === 0 ? r.teamL : r.teamR;
-          F.drawCenter(ctx, 'WINNER ' + wt.name + '!', C.W / 2, 122, '#58f858', 1);
+          F.drawCenter(ctx, 'WINNER ' + wt.name + '!', C.W / 2, 112, '#58f858', 1);
         } else {
-          F.drawCenter(ctx, 'DRAW GAME', C.W / 2, 122, '#58f858', 1);
+          F.drawCenter(ctx, 'DRAW GAME', C.W / 2, 112, '#58f858', 1);
         }
         if (this.stateT > 60 && Math.floor(this.tick / 20) % 2 === 0) {
-          F.drawCenter(ctx, 'PUSH START', C.W / 2, 142, '#ffffff', 1);
+          F.drawCenter(ctx, 'PUSH START', C.W / 2, 132, '#ffffff', 1);
         }
       }
     }
