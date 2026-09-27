@@ -82,10 +82,15 @@ window.NB = window.NB || {};
           const cx = ((i * 110 + t * 0.15) % 560) - 40 + cam * 0.7;
           cloud(ctx, cx, 22 + (i % 3) * 16);
         }
-        /* 远景楼群（视差 0.5） */
-        const off = Math.floor(cam * 0.5 / 48) * 48;
+        /* 远景楼群（视差 0.5）。高度绑定「世界楼索引」base+i 而非循环索引 i，
+           保证滚动时同一屏幕位置始终是同一栋楼，移动连贯不跳变 */
+        const scroll = cam * 0.5;                  // 视差滚动量
+        const base = Math.floor(scroll / 48);      // 当前滚动到的楼格
+        const frac = scroll - base * 48;           // 格内平滑偏移 0~48
         for (let i = -1; i < 8; i++) {
-          building(ctx, off + i * 48 + cam * 0.5, 34 + ((i * 37) % 3) * 12, '#6868a0');
+          const idx = base + i;                                  // 世界楼索引
+          const h = 34 + ((((idx * 37) % 3) + 3) % 3) * 12;      // 高度随世界索引固定
+          building(ctx, Math.round(i * 48 - frac + cam), h, '#6868a0');  // 取整防亚像素抖动
         }
         /* 铁丝网（场地远端边缘） */
         ctx.fillStyle = '#484858';
