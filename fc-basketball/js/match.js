@@ -273,11 +273,16 @@ window.NB = window.NB || {};
       const shX = this.shake > 0 ? U.rand(-2, 2) * this.shake / 6 : 0;
       const shY = this.shake > 0 ? U.rand(-1.5, 1.5) * this.shake / 6 : 0;
 
+      /* 场地：世界坐标系（translate -cam），地面/标线随镜头卷轴，
+         远景层在 stages 内部用 cam*系数 做视差补偿 */
+      ctx.save();
+      ctx.translate(Math.round(-this.cam + shX), Math.round(shY));
+      this.stage.draw(ctx, this.cam, this.tick);
+      ctx.restore();
+
+      /* 实体：屏幕坐标系（各自 x - cam），按纵深 y 远先近后排序 */
       ctx.save();
       ctx.translate(Math.round(shX), Math.round(shY));
-      this.stage.draw(ctx, this.cam, this.tick);
-
-      /* 深度排序：按纵深 y 远先近后 */
       const list = [];
       for (const p of this.players) list.push({ y: p.y, d: p });
       for (const it of this.items) list.push({ y: it.y, d: it });
