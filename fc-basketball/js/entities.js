@@ -102,12 +102,15 @@ window.NB = window.NB || {};
       if (this.x < 8) { this.x = 8; this.vx = Math.abs(this.vx) * 0.7; }
       if (this.x > C.FIELD_W - 8) { this.x = C.FIELD_W - 8; this.vx = -Math.abs(this.vx) * 0.7; }
 
-      /* 地面反弹 */
+      /* 地面反弹（小幅弹跳不播音，避免密集音效） */
       const gy = C.GROUND_Y - C.BALL_R;
       if (this.y > gy) {
         this.y = gy;
-        if (Math.abs(this.vy) > 1.2) { A.bounce(); this.vy *= -0.55; this.vx *= 0.75; }
-        else { this.vy = 0; this.vx *= 0.92; }
+        if (this.vy > 1.8) { A.bounce(); this.vy *= -0.55; this.vx *= 0.75; }
+        else {
+          this.vy = 0;
+          this.vx = Math.abs(this.vx) < 0.15 ? 0 : this.vx * 0.92;
+        }
         if (this.state === 'shot') this.state = 'free';
         this.goalHoop = null;
       }
