@@ -36,7 +36,6 @@ window.NB = window.NB || {};
       this.msg = ''; this.msgT = 0;
       this.result = null;
       this.done = false;
-      this._loserIdx = 0;
 
       this._placeKickoff();
     }
@@ -58,29 +57,6 @@ window.NB = window.NB || {};
       this.ball.holder = null; this.ball.state = 'free';
     }
 
-    _inbound() {
-      const l = this._loserIdx, w = 1 - l, M = C.HOOP.MID_Y;
-      const lp0 = this.players[l * 2], lp1 = this.players[l * 2 + 1];
-      const wp0 = this.players[w * 2], wp1 = this.players[w * 2 + 1];
-      const ownGeo = C.HOOP_GEO[l === 0 ? 'left' : 'right'];
-      const dir = l === 0 ? 1 : -1;
-
-      const reset = (p, x, y, face) => {
-        p.x = x; p.y = y; p.z = 0;
-        p.vx = 0; p.vy = 0; p.vz = 0;
-        p.face = face; p.state = 'idle'; p.stateT = 0;
-      };
-      reset(lp0, ownGeo.rimX + dir * 34, M, dir);
-      lp0.hasBall = true; lp0.invuln = 90;
-      this.ball.holder = lp0; this.ball.state = 'held'; this.ball.noCatch = 0; this.ball.goalHoop = null;
-
-      reset(lp1, C.FIELD_W / 2 + dir * 40, M - 16, dir);
-      reset(wp0, C.FIELD_W / 2 - dir * 46, M + 14, -dir);
-      reset(wp1, C.FIELD_W / 2 - dir * 90, M - 14, -dir);
-
-      this.state = 'play'; this.stateT = 0;
-    }
-
     /* ---------------- 特效 ---------------- */
     burst(x, y, z, n, color) {
       for (let i = 0; i < n; i++) {
@@ -92,16 +68,16 @@ window.NB = window.NB || {};
     }
 
     /* ---------------- 得分 ---------------- */
+    /* 热血篮球规则：进球不交换球权、不重置站位、比赛不中断——
+       球从网中落下成为自由球，双方继续争抢，计时不停。 */
     goal(hoop, scorer) {
       if (this.state !== 'play') return;
       const tIdx = hoop.side === 'left' ? 1 : 0;   // 左架是左队防区，右队得分
       if (tIdx === 0) this.scoreL += hoop.score; else this.scoreR += hoop.score;
       if (!scorer) scorer = this.ball.lastShooter;
       if (scorer && scorer.tIdx === tIdx) scorer.pts += hoop.score;
-      this._loserIdx = 1 - tIdx;
       this.msg = 'GOAL! +' + hoop.score;
       this.msgT = 80;
-      this.state = 'goal'; this.stateT = 0;
       this.burst(hoop.geo.rimX, C.HOOP.MID_Y, hoop.z, 8, '#ffffff');
       A.score();
       if (this.ot) this.finish();                  // 加时金球
@@ -163,13 +139,6 @@ window.NB = window.NB || {};
           }
           break;
         }
-
-        case 'goal':
-          this._updatePlayers();
-          this.ball.update();
-          this._updateItems();
-          if (this.stateT > 90) this._inbound();
-          break;
 
         case 'over':
           this.ball.update();

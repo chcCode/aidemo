@@ -49,7 +49,7 @@ window.NB = window.NB || {};
       this.state = 'free';        // free | held | shot | pass
       this.spin = 0;
       this.noCatch = 0;
-      this.goalHoop = null;       // 已进的筐（穿网期间不再碰撞）
+      this.goalHoop = null;       // 已进筐的 key（side:z），穿网期间防重复计分/碰撞
       this.lastShooter = null;
       this.frames = NB.Sprites.makeBall();
     }
@@ -105,7 +105,7 @@ window.NB = window.NB || {};
       this.x = hoop.geo.rimX; this.y = C.HOOP.MID_Y; this.z = hoop.z + 2;
       this.vx = 0; this.vy = 0; this.vz = -2.2;
       this.state = 'free';
-      this.goalHoop = hoop;
+      this.goalHoop = hoop.side + ':' + hoop.z;   // 标记已进此筐，穿网防重复计分
       this.noCatch = 15;
     }
 
@@ -153,18 +153,19 @@ window.NB = window.NB || {};
         const geo = C.HOOP_GEO[sideName];
         for (const lv of C.HOOP.LEVELS) {
           const hoop = { geo, z: lv.z, score: lv.score, side: sideName };
-          /* 进球判定：下落穿越筐高且球心在筐口平面范围内 */
+          const hkey = sideName + ':' + lv.z;
+          /* 进球判定：下落穿越筐高且球心在筐口平面范围内（goalHoop 防重复计分） */
           if (this.vz < 0 && this.z - this.vz >= lv.z && this.z < lv.z) {
             const dg = Math.hypot(this.x - geo.rimX, this.y - MID);
-            if (dg < C.HOOP.RIM_R - 1) {
+            if (dg < C.HOOP.RIM_R - 1 && this.goalHoop !== hkey) {
               this.m.goal(hoop, null);
-              this.goalHoop = hoop;
+              this.goalHoop = hkey;
               this.vz = -1.8;
               this.state = 'free';
               continue;
             }
           }
-          if (this.goalHoop === hoop) continue;      // 穿网
+          if (this.goalHoop === hkey) continue;      // 穿网
           /* 筐沿（水平圆环）：z 接近筐高时做平面圆环碰撞 */
           if (Math.abs(this.z - lv.z) < R + 2.5) {
             const dx = this.x - geo.rimX, dy = this.y - MID;
