@@ -26,7 +26,7 @@
         hudCombo = $('#hudCombo'), hudLevel = $('#hudLevel'), hudExp = $('#hudExp'),
         hudDiff  = $('#hudDiff');
 
-  const ovStart = $('#ovStart'), ovOver = $('#ovOver'), ovPause = $('#ovPause');
+  const ovStart = $('#ovStart'), ovOver = $('#ovOver'), ovPause = $('#ovPause'), ovTune = $('#ovTune');
   const levelBanner = $('#levelBanner');
   const sbHint = $('#sbHint'), sbHit = $('#sbHit'), sbMiss = $('#sbMiss');
 
@@ -164,12 +164,24 @@
     combo: 0, maxCombo: 0, level: 1,
     hit: 0, miss: 0,
     nextSpawnAt: 0, lastTick: -1,
-    raf: 0, lastFrame: 0,
+    raf: 0, lastFrame: 0, pausedAt: 0,
   };
 
   const bestKey = (k) => `kst-mole-best-${k}`;
   const getBest = (k) => { try { return +(localStorage.getItem(bestKey(k)) || 0); } catch (e) { return 0; } };
   const setBest = (k, v) => { try { localStorage.setItem(bestKey(k), v); } catch (e) { /* ignore */ } };
+
+  /* ---------------- 出现时间微调（null = 跟随难度自动缩放） ---------------- */
+  const TUNE_KEY = 'kst-mole-tune';
+  const TUNE = { stay: null, spawn: null };
+  try {
+    const o = JSON.parse(localStorage.getItem(TUNE_KEY) || 'null');
+    if (o) {
+      if (Number.isFinite(o.stay))  TUNE.stay  = Math.min(5000, Math.max(500, o.stay));
+      if (Number.isFinite(o.spawn)) TUNE.spawn = Math.min(3000, Math.max(250, o.spawn));
+    }
+  } catch (e) { /* ignore */ }
+  const saveTune = () => { try { localStorage.setItem(TUNE_KEY, JSON.stringify(TUNE)); } catch (e) { /* ignore */ } };
 
   const diff = () => DIFFS[S.diffKey];
 
@@ -260,8 +272,10 @@
   }
 
   /* ---------------- 地鼠生成 ---------------- */
-  function curStay()   { return Math.max(750, diff().stay - (S.level - 1) * 150); }
-  function curSpawn()  { return Math.max(430, diff().spawn - (S.level - 1) * 72); }
+  function baseStay()  { return Math.max(750, diff().stay - (S.level - 1) * 150); }
+  function baseSpawn() { return Math.max(430, diff().spawn - (S.level - 1) * 72); }
+  function curStay()   { return TUNE.stay  != null ? Math.max(500, TUNE.stay)  : baseStay(); }
+  function curSpawn()  { return TUNE.spawn != null ? Math.max(250, TUNE.spawn) : baseSpawn(); }
   function curMaxMoles(){ return Math.min(4, diff().maxMoles + Math.floor((S.level - 1) / 3)); }
 
   function activeUpCount() { return holes.filter(h => h.state === 'up').length; }
@@ -401,6 +415,7 @@
     ovStart.classList.add('hidden');
     ovOver.classList.add('hidden');
     ovPause.classList.add('hidden');
+    ovTune.classList.add('hidden');
     $('#recordTip').classList.add('hidden');
 
     hudTime.classList.remove('danger');
@@ -450,6 +465,7 @@
     S.hit = 0; S.miss = 0;
     ovOver.classList.add('hidden');
     ovPause.classList.add('hidden');
+    ovTune.classList.add('hidden');
     ovStart.classList.remove('hidden');
     hudTime.classList.remove('danger');
     $('#startBest').innerHTML = `本机最高分：<b>${getBest(S.diffKey)}</b>（${DIFFS[S.diffKey].name}）`;
@@ -462,16 +478,82 @@
     const toPause = force !== undefined ? force : S.mode === 'running';
     if (toPause) {
       S.mode = 'paused';
+      S.pausedAt = performance.now();
       ovPause.classList.remove('hidden');
       hint('已暂停 — 按 P 继续');
     } else {
+      // 补偿暂停时长：否则暂停前出洞的地鼠一恢复就会因超时全部逃脱
+      const shift = performance.now() - S.pausedAt;
+      if (shift > 0) holes.forEach(h => { if (h.state === 'up') h.expiresAt += shift; });
       S.mode = 'running';
       ovPause.classList.add('hidden');
+      ovTune.classList.add('hidden');
       S.lastFrame = performance.now();
       S.nextSpawnAt = performance.now() + 600;
       hint('继续！打起精神来～');
     }
   }
+
+  /* ---------------- 出现时间微调面板 ---------------- */
+  const tuneStayIn  = $('#tuneStay'),  tuneSpawnIn  = $('#tuneSpawn'),
+        tuneStayVal = $('#tuneStayVal'), tuneSpawnVal = $('#tuneSpawnVal'),
+        tuneMenuInfo = $('#tuneMenuInfo');
+  let tuneOpenedRunning = false;
+
+  const sec = (ms) => (ms / 1000).toFixed(1) + 's';
+
+  function refreshTuneUI() {
+    const ds = baseStay(), dsp = baseSpawn();
+    tuneStayIn.value  = TUNE.stay  != null ? TUNE.stay  : ds;
+    tuneSpawnIn.value = TUNE.spawn != null ? TUNE.spawn : dsp;
+    tuneStayVal.textContent  = TUNE.stay  != null ? `自定义 ${sec(TUNE.stay)}`  : `跟随难度 ${sec(ds)}`;
+    tuneSpawnVal.textContent = TUNE.spawn != null ? `自定义 ${sec(TUNE.spawn)}` : `跟随难度 ${sec(dsp)}`;
+    tuneStayVal.classList.toggle('custom',  TUNE.stay  != null);
+    tuneSpawnVal.classList.toggle('custom', TUNE.spawn != null);
+    tuneMenuInfo.textContent = (TUNE.stay == null && TUNE.spawn == null)
+      ? '跟随难度'
+      : `停留${sec(curStay())}·间隔${sec(curSpawn())}`;
+  }
+
+  function applyTune() {
+    saveTune();
+    refreshTuneUI();
+    if (S.mode === 'running' || S.mode === 'menu') hint(`出现时间：停留 ${sec(curStay())} ｜ 出洞间隔 ${sec(curSpawn())}`);
+  }
+
+  function resetTune() {
+    TUNE.stay = null;
+    TUNE.spawn = null;
+    saveTune();
+    refreshTuneUI();
+  }
+
+  function openTune() {
+    tuneOpenedRunning = S.mode === 'running';
+    if (tuneOpenedRunning) togglePause(true);
+    refreshTuneUI();
+    ovTune.classList.remove('hidden');
+  }
+
+  function closeTune() {
+    ovTune.classList.add('hidden');
+    if (tuneOpenedRunning) togglePause(false);
+    tuneOpenedRunning = false;
+    applyTune();
+  }
+
+  tuneStayIn.addEventListener('input', () => {
+    TUNE.stay = +tuneStayIn.value;
+    refreshTuneUI();
+    SFX.tick(1040);
+  });
+  tuneSpawnIn.addEventListener('input', () => {
+    TUNE.spawn = +tuneSpawnIn.value;
+    refreshTuneUI();
+    SFX.tick(660);
+  });
+  $('#tuneDone').addEventListener('click', closeTune);
+  $('#tuneReset').addEventListener('click', () => { resetTune(); SFX.pop(); });
 
   /* ---------------- 主循环 ---------------- */
   function loop(now) {
@@ -532,6 +614,7 @@
       return;
     }
     if (k === 'Escape') {
+      if (!ovTune.classList.contains('hidden')) { e.preventDefault(); closeTune(); return; }
       if (S.mode === 'running' || S.mode === 'paused') { e.preventDefault(); backToMenu(); }
       return;
     }
@@ -593,6 +676,10 @@
         const m = SFX.toggleMute();
         hint(m ? '声音已关闭' : '声音已开启');
       }
+      else if (a === 'tune') openTune();
+      else if (a === 'tune-preset-fast') { TUNE.stay = 1200; TUNE.spawn = 600;  applyTune(); SFX.pop(); }
+      else if (a === 'tune-preset-slow') { TUNE.stay = 3500; TUNE.spawn = 1600; applyTune(); SFX.pop(); }
+      else if (a === 'tune-reset') { resetTune(); applyTune(); SFX.pop(); }
       else if (a === 'rules') hint('规则：地鼠出洞 → 按头顶字母打中；漏打扣 1 生命；连击有加分加成！');
       else if (a === 'keys') hint('按键：A–Z 打地鼠 ｜ P 暂停 ｜ M 静音 ｜ Enter 开始 ｜ Esc 返回菜单');
     });
@@ -608,6 +695,7 @@
       renderHUD();
     }
     $('#startBest').innerHTML = `本机最高分：<b>${getBest(S.diffKey)}</b>（${DIFFS[S.diffKey].name}）`;
+    refreshTuneUI();
   }
 
   document.querySelectorAll('.diff-btn').forEach(b => {
@@ -642,5 +730,6 @@
 
   /* ---------------- 初始化 ---------------- */
   syncDiffButtons();
+  refreshTuneUI();
   backToMenu();
 })();

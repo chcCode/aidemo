@@ -88,7 +88,7 @@ body{
   background:linear-gradient(180deg,#fdfdfb,#ece9d8);
   border-bottom:1px solid #d6d2c2;
   padding:0 4px;font-size:12.5px;color:#222;
-  position:relative;z-index:40;
+  position:relative;z-index:70; /* 高于 .overlay(50)，保证下拉菜单可点 */
 }
 .menu,.menu-static{position:relative;display:flex;align-items:center}
 .menu-label,.menu-static{padding:0 10px;cursor:default;line-height:24px;white-space:nowrap}
@@ -484,6 +484,22 @@ body{
   box-shadow:0 4px 0 #1c4a8c,0 8px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.45)}
 .big-btn.alt:active{box-shadow:0 1px 0 #1c4a8c,0 4px 8px rgba(0,0,0,.3)}
 .btn-row{display:flex;gap:12px;justify-content:center;margin-top:14px}
+
+/* ---- 出现时间微调面板 ---- */
+#ovTune .panel{width:min(440px,92%)}
+.tune-row{display:flex;align-items:center;gap:10px;margin:14px 4px 4px}
+.tune-row label{flex:none;width:82px;font-size:13px;font-weight:800;color:#4a463a;letter-spacing:1px}
+.tune-row input[type=range]{
+  flex:1;min-width:0;height:22px;margin:0;cursor:pointer;
+  accent-color:#0a4ba8;background:transparent;
+}
+.tune-val{
+  flex:none;min-width:112px;text-align:center;
+  font-family:Consolas,'Courier New',monospace;font-weight:800;font-size:13px;
+  color:#0a4ba8;background:#fff;border:1px solid #c3bfae;border-radius:4px;padding:4px 6px;
+}
+.tune-val.custom{color:#c2410c;border-color:#e2a06a;background:#fff6ec}
+.tune-tip{font-size:12px;color:#6b6552;line-height:1.6;text-align:left;margin:12px 4px 0}
 .best-line{margin-top:10px;font-size:13px;color:#7a7565}
 .best-line b{color:#c2410c;font-size:15px}
 .pause-tip{font-size:14px;color:#4a463a;margin:6px 0 14px}

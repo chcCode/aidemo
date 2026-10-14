@@ -61,7 +61,16 @@
         </div>
       </div>
       <span class="menu-static">文件(F)</span>
-      <span class="menu-static">设置(S)</span>
+      <div class="menu" data-menu="set">
+        <span class="menu-label">设置(S)</span>
+        <div class="menu-drop">
+          <button class="menu-op" data-act="tune">微调地鼠出现时间…<em id="tuneMenuInfo">跟随难度</em></button>
+          <button class="menu-op" data-act="tune-preset-fast">预设：手速快（1.2s / 0.6s）</button>
+          <button class="menu-op" data-act="tune-preset-slow">预设：练习慢速（3.5s / 1.6s）</button>
+          <div class="menu-sep"></div>
+          <button class="menu-op" data-act="tune-reset">恢复默认（跟随难度）</button>
+        </div>
+      </div>
       <span class="menu-static">排行榜(R)</span>
     </nav>
 
@@ -158,6 +167,28 @@
           <div class="panel-title">已暂停</div>
           <p class="pause-tip">按 <b>P</b> 或点击下方按钮继续</p>
           <button class="big-btn" id="btnResume">继 续 游 戏</button>
+        </div>
+      </div>
+
+      <!-- 微调地鼠出现时间 -->
+      <div class="overlay hidden" id="ovTune">
+        <div class="panel slim">
+          <div class="panel-title">出现时间</div>
+          <div class="tune-row">
+            <label for="tuneStay">停留时长</label>
+            <input type="range" id="tuneStay" min="500" max="5000" step="50" />
+            <span class="tune-val" id="tuneStayVal">跟随难度</span>
+          </div>
+          <div class="tune-row">
+            <label for="tuneSpawn">出洞间隔</label>
+            <input type="range" id="tuneSpawn" min="250" max="3000" step="50" />
+            <span class="tune-val" id="tuneSpawnVal">跟随难度</span>
+          </div>
+          <p class="tune-tip">拖动滑块＝自定义微调（对局中即时生效）；点「恢复默认」回到随难度自动缩放。</p>
+          <div class="btn-row">
+            <button class="big-btn" id="tuneDone">完 成</button>
+            <button class="big-btn alt" id="tuneReset">恢复默认</button>
+          </div>
         </div>
       </div>
     </main>
