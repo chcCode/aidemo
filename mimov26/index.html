@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>金山打字通 · 打地鼠</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="desktop">
+  <div class="app-window" id="appWindow">
+
+    <!-- ===== 标题栏 ===== -->
+    <header class="titlebar" id="titlebar">
+      <span class="tb-icon">
+        <svg viewBox="0 0 32 32" width="16" height="16" aria-hidden="true">
+          <ellipse cx="16" cy="19" rx="11" ry="10" fill="#8b5a2b"/>
+          <circle cx="8" cy="9" r="4" fill="#8b5a2b"/>
+          <circle cx="24" cy="9" r="4" fill="#8b5a2b"/>
+          <ellipse cx="16" cy="22" rx="6" ry="4.5" fill="#d8a877"/>
+          <ellipse cx="16" cy="20" rx="2.4" ry="1.8" fill="#4a2c14"/>
+          <rect x="13" y="23" width="3" height="5" rx="1" fill="#fff"/>
+          <rect x="16.5" y="23" width="3" height="5" rx="1" fill="#fff"/>
+        </svg>
+      </span>
+      <span class="tb-title">金山打字通 — 打地鼠</span>
+      <span class="tb-ver">v2010.1</span>
+      <div class="tb-buttons">
+        <button class="tb-btn" id="btnMin" title="最小化" aria-label="最小化">
+          <svg viewBox="0 0 12 12"><rect x="2" y="8" width="8" height="2" fill="#0a2a5e"/></svg>
+        </button>
+        <button class="tb-btn" id="btnMax" title="还原/最大化" aria-label="最大化">
+          <svg viewBox="0 0 12 12"><rect x="2.5" y="2.5" width="7" height="7" fill="none" stroke="#0a2a5e" stroke-width="1.6"/><rect x="2.5" y="2.5" width="7" height="2" fill="#0a2a5e"/></svg>
+        </button>
+        <button class="tb-btn tb-close" id="btnClose" title="关闭" aria-label="关闭">
+          <svg viewBox="0 0 12 12"><path d="M3 3 L9 9 M9 3 L3 9" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ===== 菜单栏 ===== -->
+    <nav class="menubar">
+      <div class="menu" data-menu="game">
+        <span class="menu-label">游戏(G)</span>
+        <div class="menu-drop">
+          <button class="menu-op" data-act="restart">重新开始<em>Ctrl+R</em></button>
+          <button class="menu-op" data-act="pause">暂停 / 继续<em>P</em></button>
+          <div class="menu-sep"></div>
+          <button class="menu-op" data-act="diff-easy">难度：初级</button>
+          <button class="menu-op" data-act="diff-normal">难度：中级</button>
+          <button class="menu-op" data-act="diff-hard">难度：高级</button>
+          <div class="menu-sep"></div>
+          <button class="menu-op" data-act="mute">声音：开 / 关<em>M</em></button>
+        </div>
+      </div>
+      <div class="menu" data-menu="help">
+        <span class="menu-label">帮助(H)</span>
+        <div class="menu-drop">
+          <button class="menu-op" data-act="rules">游戏规则</button>
+          <button class="menu-op" data-act="keys">操作按键</button>
+        </div>
+      </div>
+      <span class="menu-static">文件(F)</span>
+      <span class="menu-static">设置(S)</span>
+      <span class="menu-static">排行榜(R)</span>
+    </nav>
+
+    <!-- ===== 状态栏(上) ===== -->
+    <section class="hud">
+      <div class="hud-item">
+        <span class="hud-label">分数</span>
+        <span class="hud-val num" id="hudScore">0</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">时间</span>
+        <span class="hud-val num" id="hudTime">60</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">生命</span>
+        <span class="hud-val lives" id="hudLives"></span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">连击</span>
+        <span class="hud-val num combo" id="hudCombo">0</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">关卡</span>
+        <span class="hud-val num" id="hudLevel">1</span>
+      </div>
+      <div class="hud-item hud-wide">
+        <span class="hud-label">升级</span>
+        <span class="hud-bar"><i id="hudExp"></i></span>
+      </div>
+      <div class="hud-item hud-diff">
+        <span class="hud-label">难度</span>
+        <span class="hud-val" id="hudDiff">中级</span>
+      </div>
+    </section>
+
+    <!-- ===== 游戏场地 ===== -->
+    <main class="stage" id="stage">
+      <div class="sky-decor" aria-hidden="true">
+        <div class="cloud c1"></div>
+        <div class="cloud c2"></div>
+        <div class="fence"></div>
+      </div>
+
+      <div class="field" id="field"></div>
+
+      <div class="fx-layer" id="fxLayer" aria-hidden="true"></div>
+
+      <div class="level-banner" id="levelBanner"></div>
+
+      <!-- 开始界面 -->
+      <div class="overlay" id="ovStart">
+        <div class="panel">
+          <div class="panel-title">打地鼠</div>
+          <div class="panel-sub">英文打字练习 · 金山打字通经典小游戏</div>
+          <div class="rules">
+            <p>① 地鼠会从洞里钻出来，头顶写着 <b>英文字母</b>；</p>
+            <p>② 迅速按下 <b>对应字母键</b>，即可把它打回洞中得分；</p>
+            <p>③ 地鼠逃脱会扣生命，漏打 5 次本局结束；</p>
+            <p>④ 连续命中触发 <b>连击加成</b>，越往后地鼠越快、越多！</p>
+          </div>
+          <div class="diff-pick" id="diffPick">
+            <button class="diff-btn" data-diff="easy"><b>初级</b><i>60 秒 · 慢速 · 6 条命</i></button>
+            <button class="diff-btn active" data-diff="normal"><b>中级</b><i>50 秒 · 标准 · 5 条命</i></button>
+            <button class="diff-btn" data-diff="hard"><b>高级</b><i>40 秒 · 快速 · 4 条命</i></button>
+          </div>
+          <button class="big-btn" id="btnStart">开 始 游 戏<em>Enter</em></button>
+          <div class="best-line" id="startBest">本机最高分：0</div>
+        </div>
+      </div>
+
+      <!-- 结算界面 -->
+      <div class="overlay hidden" id="ovOver">
+        <div class="panel">
+          <div class="panel-title over">游戏结束</div>
+          <div class="result-grid">
+            <div class="res"><label>最终得分</label><b id="resScore">0</b></div>
+            <div class="res"><label>命中次数</label><b id="resHit">0</b></div>
+            <div class="res"><label>逃脱次数</label><b id="resMiss">0</b></div>
+            <div class="res"><label>最高连击</label><b id="resCombo">0</b></div>
+            <div class="res"><label>到达关卡</label><b id="resLevel">1</b></div>
+            <div class="res"><label>最高纪录</label><b id="resBest">0</b></div>
+          </div>
+          <div class="record-tip hidden" id="recordTip">★ 打破纪录啦！ ★</div>
+          <div class="btn-row">
+            <button class="big-btn" id="btnAgain">再来一局<em>Enter</em></button>
+            <button class="big-btn alt" id="btnMenu">返回主菜单<em>Esc</em></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 暂停界面 -->
+      <div class="overlay hidden" id="ovPause">
+        <div class="panel slim">
+          <div class="panel-title">已暂停</div>
+          <p class="pause-tip">按 <b>P</b> 或点击下方按钮继续</p>
+          <button class="big-btn" id="btnResume">继 续 游 戏</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- ===== 状态栏(下) ===== -->
+    <footer class="statusbar">
+      <span class="sb-cell grow" id="sbHint">提示：按下地鼠头上的字母，把它打回洞里！</span>
+      <span class="sb-cell" id="sbHit">命中：0</span>
+      <span class="sb-cell" id="sbMiss">逃脱：0</span>
+      <span class="sb-cell" id="sbKey">键盘：A–Z</span>
+    </footer>
+
+  </div>
+</div>
+
+<script src="js/audio.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
