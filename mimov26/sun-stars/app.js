@@ -225,21 +225,21 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     const planetsData = [
         {
             name: '水星', en: 'Mercury',
-            radius: 1.1, orbit: 16, period: 0.24, spin: 0.004,
+            radius: 1.1, realRadius: 0.77, orbit: 16, realOrbit: 16, period: 0.24, spin: 0.004,
             color: 0xb0b0b0,
             texture: () => noiseTexture('#8a8a8a', ['#6e6e6e', '#a5a5a5', '#5c5c5c'], 400, 8),
             desc: '距太阳最近的行星，昼夜温差极大，表面布满陨石坑。'
         },
         {
             name: '金星', en: 'Venus',
-            radius: 1.9, orbit: 24, period: 0.62, spin: -0.002,
+            radius: 1.9, realRadius: 1.9, orbit: 24, realOrbit: 42, period: 0.62, spin: -0.002,
             color: 0xe6c27a,
             texture: () => stripeTexture('#d4a94e', ['#f0d78c', '#b8860b', '#e8c878'], 60),
             desc: '太阳系中最热的行星，被浓厚二氧化碳大气层覆盖。'
         },
         {
             name: '地球', en: 'Earth',
-            radius: 2.0, orbit: 33, period: 1.0, spin: 0.02,
+            radius: 2.0, realRadius: 2.0, orbit: 33, realOrbit: 56, period: 1.0, spin: 0.02,
             color: 0x4d90e0,
             texture: () => makeCanvasTexture((ctx, w, h) => {
                 // 海洋
@@ -280,21 +280,21 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         },
         {
             name: '火星', en: 'Mars',
-            radius: 1.5, orbit: 42, period: 1.88, spin: 0.019,
+            radius: 1.5, realRadius: 1.06, orbit: 42, realOrbit: 74, period: 1.88, spin: 0.019,
             color: 0xc1440e,
             texture: () => noiseTexture('#b34a1f', ['#8c3513', '#d06a35', '#6e2a10', '#e08050'], 500, 10),
             desc: '红色星球，拥有太阳系最高的火山——奥林帕斯山。'
         },
         {
             name: '木星', en: 'Jupiter',
-            radius: 5.5, orbit: 62, period: 11.86, spin: 0.045,
+            radius: 5.5, realRadius: 21.9, orbit: 62, realOrbit: 126, period: 11.86, spin: 0.045,
             color: 0xd8a56a,
             texture: () => stripeTexture('#c9956b', ['#e8c8a0', '#a67b52', '#f0dcc0', '#8b6244', '#d4b08c'], 40),
             desc: '太阳系最大的行星，大红斑是一场持续数百年的风暴。'
         },
         {
             name: '土星', en: 'Saturn',
-            radius: 4.6, orbit: 82, period: 29.46, spin: 0.04,
+            radius: 4.6, realRadius: 18.3, orbit: 82, realOrbit: 152, period: 29.46, spin: 0.04,
             color: 0xead6a6,
             texture: () => stripeTexture('#e0cc9a', ['#f5e8c8', '#c9b078', '#fff4d8', '#b89e64'], 35),
             desc: '以壮观的环系闻名，环由冰块和岩石碎片组成。',
@@ -302,14 +302,14 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         },
         {
             name: '天王星', en: 'Uranus',
-            radius: 3.2, orbit: 102, period: 84.01, spin: -0.03,
+            radius: 3.2, realRadius: 8.0, orbit: 102, realOrbit: 181, period: 84.01, spin: -0.03,
             color: 0x9fd8e8,
             texture: () => stripeTexture('#7fd0e0', ['#a8e4f0', '#68bcd0', '#c0eef8'], 30),
             desc: '一颗"躺着"自转的冰巨星，轴倾角达 98 度。'
         },
         {
             name: '海王星', en: 'Neptune',
-            radius: 3.1, orbit: 120, period: 164.8, spin: 0.032,
+            radius: 3.1, realRadius: 7.7, orbit: 120, realOrbit: 200, period: 164.8, spin: 0.032,
             color: 0x4470e0,
             texture: () => stripeTexture('#3a5fd0', ['#5a80f0', '#2a48b0', '#7aa0ff'], 30),
             desc: '太阳系最外侧的行星，拥有太阳系最快的风速。'
@@ -391,7 +391,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         scene.add(orbitLine);
         orbitLines.push(orbitLine);
 
-        planetMeshes.push({ pivot, mesh, data: p, index: idx });
+        planetMeshes.push({ pivot, mesh, data: p, index: idx, orbitLine });
 
         // 初始随机相位
         pivot.rotation.y = Math.random() * Math.PI * 2;
@@ -444,6 +444,37 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         btnToggle.textContent = showOrbits ? '隐藏轨道线' : '显示轨道线';
     });
 
+    // 比例切换（示意 <-> 真实）
+    let realScaleMode = false;
+    const BELT_SCALE = 98 / 54;
+    const btnScale = document.getElementById('btn-toggle-scale');
+
+    function displayedRadius(p) {
+        return realScaleMode ? p.realRadius : p.radius;
+    }
+
+    function applyScaleMode() {
+        planetMeshes.forEach(pm => {
+            const p = pm.data;
+            pm.mesh.scale.setScalar(displayedRadius(p) / p.radius);
+            const oRatio = realScaleMode ? p.realOrbit / p.orbit : 1;
+            pm.mesh.position.x = p.orbit * oRatio;
+            pm.orbitLine.scale.setScalar(oRatio);
+        });
+        asteroidBelt.scale.setScalar(realScaleMode ? BELT_SCALE : 1);
+        controls.maxDistance = realScaleMode ? 800 : 600;
+        btnScale.textContent = realScaleMode ? '切换示意比例' : '切换真实比例';
+        if (focusedIndex >= 0) {
+            const p = planetMeshes[focusedIndex].data;
+            zoomTarget = THREE.MathUtils.clamp(displayedRadius(p) * 7 + 10, controls.minDistance, controls.maxDistance);
+        }
+    }
+
+    btnScale.addEventListener('click', () => {
+        realScaleMode = !realScaleMode;
+        applyScaleMode();
+    });
+
     // 图例
     const legendList = document.getElementById('legend-list');
     const legendItems = [];
@@ -467,7 +498,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         document.getElementById('planet-desc').textContent = p.desc;
         planetInfoEl.style.display = 'block';
         legendItems.forEach((el, i) => el.style.opacity = i === idx ? 1 : 0.5);
-        zoomTarget = THREE.MathUtils.clamp(p.radius * 7 + 10, controls.minDistance, controls.maxDistance);
+        zoomTarget = THREE.MathUtils.clamp(displayedRadius(p) * 7 + 10, controls.minDistance, controls.maxDistance);
     }
 
     function unfocus() {
