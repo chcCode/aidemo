@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>贪吃蛇大作战</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="stage">
+  <canvas id="game"></canvas>
+
+  <!-- 战斗 HUD -->
+  <div id="hud" class="hidden">
+    <div id="topLeft">
+      <div id="scoreBox">
+        <div class="score-label">得分</div>
+        <div id="scoreVal">0</div>
+      </div>
+      <div id="rankBox">第 <span id="rankVal">--</span> 名</div>
+      <div id="killBox">击杀 <span id="killVal">0</span></div>
+    </div>
+
+    <div id="board">
+      <div class="board-title">排行榜</div>
+      <ul id="boardList"></ul>
+    </div>
+
+    <div id="boostBtn">
+      <div class="boost-inner">加速</div>
+    </div>
+
+    <div id="hint">移动鼠标控制方向 · 按住 空格 / 右键 加速</div>
+  </div>
+
+  <div id="killFeed"></div>
+
+  <!-- 开始界面 -->
+  <div id="startScreen" class="screen">
+    <div class="panel">
+      <h1 class="game-title">贪吃蛇大作战</h1>
+      <div class="subtitle">吃掉光点 · 围剿对手 · 称霸全场</div>
+
+      <div class="form-row">
+        <label>昵称</label>
+        <input id="nameInput" type="text" maxlength="8" placeholder="输入昵称" autocomplete="off">
+      </div>
+
+      <div class="form-row">
+        <label>皮肤</label>
+        <div id="skinPicker"></div>
+      </div>
+
+      <button id="startBtn" class="big-btn">开始游戏</button>
+      <div class="foot-tip" id="footTip">AI 蛇已就位，你能排第几？</div>
+    </div>
+  </div>
+
+  <!-- 结算界面 -->
+  <div id="deathScreen" class="screen hidden">
+    <div class="panel">
+      <h2 class="dead-title">本局结束</h2>
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-num" id="dScore">0</div><div class="stat-label">得分</div></div>
+        <div class="stat"><div class="stat-num" id="dRank">--</div><div class="stat-label">排名</div></div>
+        <div class="stat"><div class="stat-num" id="dKills">0</div><div class="stat-label">击杀</div></div>
+        <div class="stat"><div class="stat-num" id="dBeat">0%</div><div class="stat-label">击败玩家</div></div>
+      </div>
+      <div class="killer-line" id="killerLine"></div>
+      <button id="respawnBtn" class="big-btn">再来一局</button>
+    </div>
+  </div>
+
+  <button id="soundBtn" title="音效开关">♪</button>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/particles.js"></script>
+<script src="js/food.js"></script>
+<script src="js/snake.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/game.js"></script>
+<script src="js/render.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
