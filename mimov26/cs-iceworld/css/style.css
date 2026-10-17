@@ -1,0 +1,265 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+body {
+  font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+  color: #dfe6dd;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#stage { position: fixed; inset: 0; }
+#viewport { position: absolute; inset: 0; }
+#viewport canvas { display: block; }
+
+.hidden { display: none !important; }
+
+/* ============ HUD 通用 ============ */
+#hud { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
+
+.hudnum {
+  font-family: "Consolas", "Courier New", monospace;
+  font-weight: 700;
+  text-shadow: 1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000, 0 0 6px rgba(0,0,0,.9);
+}
+
+/* 雷达（左上，CS1.6 方形半透明） */
+#radar {
+  position: absolute; left: 14px; top: 12px;
+  background: rgba(0, 20, 0, .45);
+  border: 1px solid rgba(120, 220, 120, .35);
+  box-shadow: 0 0 10px rgba(0,0,0,.5) inset;
+}
+
+/* 顶部分数与时间 */
+#scoreline {
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 14px; align-items: center;
+  font-family: Consolas, monospace; font-weight: 700; font-size: 22px;
+  text-shadow: 1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000;
+}
+#ctScore { color: #9ec8ff; }
+#tScore { color: #ffc98b; }
+#timer { color: #f2f2f2; font-size: 24px; letter-spacing: 1px; }
+
+/* 金钱（右上） */
+#money {
+  position: absolute; right: 18px; top: 12px;
+  font-family: Consolas, monospace; font-weight: 700; font-size: 26px; color: #7dffa0;
+  text-shadow: 1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000;
+}
+
+/* 击杀播报（右上，金钱下方） */
+#killfeed {
+  position: absolute; right: 18px; top: 46px;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+  font-size: 14px; font-weight: 700;
+}
+.kf {
+  background: rgba(0, 0, 0, .55); padding: 3px 8px; border-radius: 2px;
+  text-shadow: 1px 1px 0 #000;
+  animation: kfin .12s ease-out;
+}
+.kf .ct { color: #9ec8ff; }
+.kf .t { color: #ffc98b; }
+.kf .w { color: #e8e8e8; padding: 0 6px; font-family: Consolas, monospace; }
+.kf .hs { color: #ffd24a; }
+@keyframes kfin { from { transform: translateX(30px); opacity: 0; } }
+
+/* 血量 / 护甲（左下） */
+#hpbox {
+  position: absolute; left: 22px; bottom: 18px;
+  display: flex; align-items: baseline; gap: 8px;
+  font-family: Consolas, monospace; font-weight: 700;
+  text-shadow: 1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000;
+}
+#hp, #ap { font-size: 42px; color: #f0f0f0; min-width: 74px; }
+.hpicon { font-size: 40px; color: #ff5a5a; font-weight: 900; margin-right: -2px; }
+.armoricon { font-size: 26px; color: #7db9ff; margin-left: 14px; }
+#hpbox.low #hp { color: #ff6a6a; animation: blink .6s infinite alternate; }
+@keyframes blink { to { opacity: .35; } }
+
+/* 弹药（右下） */
+#ammobox {
+  position: absolute; right: 22px; bottom: 18px; text-align: right;
+  font-family: Consolas, monospace; font-weight: 700;
+  text-shadow: 1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000;
+}
+#wpnname { font-size: 15px; color: #cfcfcf; letter-spacing: 2px; margin-bottom: 2px; }
+#ammonum { font-size: 46px; color: #f0f0f0; }
+#ammonum .bar { color: #888; margin: 0 10px; font-size: 34px; }
+#reserve { color: #b9b9b9; font-size: 34px; }
+#ammobox.reload #clip { color: #ffd24a; }
+
+/* 准星 */
+#crosshair { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+.ch { position: absolute; background: #29ff29; box-shadow: 0 0 0 1px rgba(0,0,0,.85); }
+.ch-t, .ch-b { width: 2px; height: 8px; left: -1px; }
+.ch-l, .ch-r { height: 2px; width: 8px; top: -1px; }
+.ch-t { bottom: var(--gap, 6px); } .ch-b { top: var(--gap, 6px); }
+.ch-l { right: var(--gap, 6px); } .ch-r { left: var(--gap, 6px); }
+
+/* 命中标记 */
+#hitmark {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(.6);
+  font-size: 26px; font-weight: 900; color: #fff; opacity: 0;
+  text-shadow: 0 0 4px #000;
+}
+#hitmark.show { animation: hitpop .25s ease-out; }
+#hitmark.hs { color: #ffd24a; }
+@keyframes hitpop { 0% { opacity: 1; transform: translate(-50%,-50%) scale(1.25);} 100% { opacity: 0; transform: translate(-50%,-50%) scale(.7);} }
+
+/* 屏幕中央提示 */
+#centermsg {
+  position: absolute; left: 50%; top: 34%; transform: translateX(-50%);
+  font-size: 30px; font-weight: 800; color: #ffd24a; text-align: center;
+  text-shadow: 2px 2px 0 #000; opacity: 0; white-space: pre-line;
+}
+#centermsg.show { animation: cmsg 1.4s ease-out; }
+@keyframes cmsg { 0% { opacity: 0; transform: translateX(-50%) scale(.85);} 12% { opacity: 1; transform: translateX(-50%) scale(1);} 75% { opacity: 1; } 100% { opacity: 0; } }
+
+/* 受击方向指示 + 红屏 */
+#dmgdir { position: absolute; inset: 0; pointer-events: none; }
+#dmgdir .arc {
+  position: absolute; left: 50%; top: 50%; width: 240px; height: 240px; margin: -120px 0 0 -120px;
+  background: conic-gradient(from -18deg, rgba(255,40,40,.55), transparent 36deg);
+  -webkit-mask: radial-gradient(circle, transparent 66%, #000 68%, #000 86%, transparent 88%);
+          mask: radial-gradient(circle, transparent 66%, #000 68%, #000 86%, transparent 88%);
+  opacity: 0;
+}
+#vignette {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(180, 0, 0, .55) 100%);
+  transition: opacity .35s;
+}
+#vignette.on { opacity: 1; transition: none; }
+
+/* AWP 开镜：全屏黑罩 + 中央圆形视窗 */
+#scopes {
+  position: absolute; inset: 0; background: #000;
+  -webkit-mask: radial-gradient(circle at center, transparent 0 30vmin, #000 30.5vmin);
+          mask: radial-gradient(circle at center, transparent 0 30vmin, #000 30.5vmin);
+}
+#scopes.lv2 {
+  -webkit-mask: radial-gradient(circle at center, transparent 0 22vmin, #000 22.5vmin);
+          mask: radial-gradient(circle at center, transparent 0 22vmin, #000 22.5vmin);
+}
+#scopelines { position: absolute; inset: 0; pointer-events: none; }
+.scope-line { position: absolute; background: rgba(0, 0, 0, .92); }
+.scope-line.h { left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; }
+.scope-line.v { top: 0; bottom: 0; left: 50%; width: 2px; margin-left: -1px; }
+
+/* ============ 计分板 ============ */
+#scoreboard {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: min(860px, 92vw); z-index: 30;
+  background: rgba(6, 10, 8, .92); border: 1px solid #2f463a;
+  box-shadow: 0 10px 50px rgba(0,0,0,.7); padding: 14px 16px;
+}
+.sb-title { font-size: 20px; font-weight: 800; color: #eaeaea; }
+.sb-sub { font-size: 13px; color: #8fa294; margin: 2px 0 10px; }
+.sb-teams { display: flex; gap: 14px; }
+.sb-team { flex: 1; }
+.sb-head {
+  font-weight: 800; font-size: 15px; padding: 6px 8px; color: #0c0c0c;
+  display: flex; justify-content: space-between;
+}
+.sb-head.ct { background: #8fb7e8; }
+.sb-head.t { background: #e8b98f; }
+.sb-rows { background: rgba(255,255,255,.04); }
+.sb-row {
+  display: grid; grid-template-columns: 1fr 44px 44px 52px;
+  font-size: 13px; padding: 5px 8px; color: #cdd6cf;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.sb-row.head { color: #77857b; font-size: 11px; }
+.sb-row.me { background: rgba(255, 226, 128, .14); color: #ffe9a8; }
+.sb-row.dead { opacity: .45; }
+.sb-row span:nth-child(n+2) { text-align: right; font-family: Consolas, monospace; }
+
+/* ============ 买枪菜单 ============ */
+#buymenu {
+  position: absolute; left: 22px; bottom: 110px; z-index: 25;
+  background: rgba(0, 0, 0, .78); border: 1px solid rgba(120, 220, 120, .3);
+  min-width: 330px; padding: 10px 12px;
+}
+.bm-title { color: #7dffa0; font-weight: 800; font-size: 14px; margin-bottom: 6px; letter-spacing: 2px; }
+.bm-item { font-family: Consolas, monospace; font-size: 15px; color: #c9f7cf; padding: 3px 2px; display: flex; gap: 10px; }
+.bm-item .k { color: #ffd24a; width: 16px; }
+.bm-item .p { margin-left: auto; color: #7dffa0; }
+.bm-item.off { color: #566; } .bm-item.off .p { color: #566; }
+.bm-hint { margin-top: 6px; font-size: 11px; color: #6d7f72; }
+
+/* ============ 阵亡 / 结算 ============ */
+#deathscreen {
+  position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px; pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(60,0,0,.25), rgba(10,0,0,.55));
+}
+.ds-title { font-size: 44px; font-weight: 900; color: #ff5a5a; text-shadow: 2px 2px 0 #000; }
+.ds-by { font-size: 18px; color: #e6e6e6; text-shadow: 1px 1px 0 #000; }
+.ds-wait { font-size: 15px; color: #ffd24a; }
+
+#endscreen { position: absolute; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.7); }
+#endscreen .panel, .screen .panel {
+  background: linear-gradient(180deg, rgba(14, 22, 17, .97), rgba(8, 12, 10, .97));
+  border: 1px solid #33463b; padding: 28px 34px; width: min(560px, 92vw);
+  box-shadow: 0 20px 70px rgba(0,0,0,.8); text-align: center;
+}
+#endTitle, .dead-title { font-size: 30px; font-weight: 900; color: #eaeaea; margin-bottom: 16px; }
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+.stat { background: rgba(255,255,255,.05); padding: 12px 4px; }
+.stat-num { font-size: 30px; font-weight: 800; color: #ffd24a; font-family: Consolas, monospace; }
+.stat-label { font-size: 12px; color: #93a19a; margin-top: 2px; }
+
+/* ============ 开始界面 ============ */
+.screen {
+  position: absolute; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center;
+  background:
+    linear-gradient(rgba(4, 8, 10, .82), rgba(4, 8, 10, .92)),
+    repeating-linear-gradient(45deg, #0e1416 0 14px, #111a1d 14px 28px);
+}
+.game-title {
+  font-family: Impact, "Arial Black", sans-serif; font-size: 54px; letter-spacing: 3px;
+  color: #f7c13c; text-align: center; line-height: .95;
+}
+.game-title span { display: block; font-size: 26px; color: #b98c2a; letter-spacing: 12px; }
+.subtitle { text-align: center; color: #93a19a; font-size: 13px; margin: 10px 0 18px; }
+.form-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 14px; }
+.form-row label { width: 52px; color: #a9b6ad; text-align: right; }
+.form-row input[type=text] {
+  flex: 1; background: rgba(255,255,255,.07); border: 1px solid #3a4b41; color: #e8eee9;
+  padding: 8px 10px; font-size: 14px; outline: none;
+}
+.form-row input[type=text]:focus { border-color: #7dffa0; }
+.form-row input[type=range] { flex: 1; accent-color: #7dffa0; }
+.rangenum { width: 34px; text-align: right; color: #ffd24a; font-family: Consolas, monospace; }
+.seg { display: flex; gap: 6px; flex: 1; }
+.seg button {
+  flex: 1; background: rgba(255,255,255,.06); border: 1px solid #3a4b41; color: #b9c6bd;
+  padding: 7px 4px; font-size: 13px; cursor: pointer; transition: .15s;
+}
+.seg button:hover { background: rgba(255,255,255,.12); }
+.seg button.on { background: #2c6b3f; border-color: #52b871; color: #eaffef; }
+.big-btn {
+  display: block; width: 100%; margin-top: 6px; padding: 13px;
+  background: linear-gradient(#3f8c52, #2c6b3f); border: 1px solid #67d489;
+  color: #eaffef; font-size: 18px; font-weight: 800; letter-spacing: 4px; cursor: pointer;
+}
+.big-btn:hover { background: linear-gradient(#4daa66, #35794a); filter: brightness(1.1); }
+.controls {
+  display: flex; flex-wrap: wrap; gap: 6px 12px; justify-content: center;
+  margin-top: 16px; font-size: 11px; color: #7d8b83;
+}
+.controls span { background: rgba(255,255,255,.05); padding: 3px 7px; }
+.foot-tip { margin-top: 12px; font-size: 11px; color: #5f6d65; text-align: center; }
+
+/* ============ 暂停 / 加载 ============ */
+#pausehint {
+  position: absolute; inset: 0; z-index: 35; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.55); font-size: 20px; color: #dfe6dd; letter-spacing: 2px; cursor: pointer;
+}
+#loading { z-index: 60; }
+.loadbox { width: 340px; text-align: center; }
+.loadbar { height: 8px; background: rgba(255,255,255,.1); border: 1px solid #3a4b41; }
+.loadbar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #2c6b3f, #7dffa0); transition: width .2s; }
+.loadtxt { margin-top: 10px; font-size: 13px; color: #93a19a; }

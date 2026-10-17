@@ -1,0 +1,347 @@
+[
+ {
+  "wad": "\\program files\\valve\\valve\\halflife.wad;\\program files\\valve\\cstrike\\cs_office.wad;\\program files\\valve\\cstrike\\cs_assault.wad;",
+  "mapversion": "220",
+  "maxrange": "4096",
+  "classname": "worldspawn",
+  "skyname": "snow",
+  "message": "fy_iceworld"
+ },
+ {
+  "origin": "0 -1344 -212",
+  "angles": "0 90 0",
+  "classname": "info_player_deathmatch"
+ },
+ {
+  "origin": "0 -1216 -212",
+  "angles": "0 90 0",
+  "classname": "info_player_deathmatch"
+ },
+ {
+  "origin": "128 -1344 -212",
+  "angles": "0 90 0",
+  "classname": "info_player_deathmatch"
+ },
+ {
+  "origin": "128 -1216 -212",
+  "angles": "0 90 0",
+  "classname": "info_player_deathmatch"
+ },
+ {
+  "origin": "256 -1344 -212",
+  "angles": "0 90 0",
+  "classname": "info_player_deathmatch"
+ },
+ {
+  "origin": "256 -1216 -212",
+  "angles": "0 90 0",
+  "classname": "info_player_deathmatch"
+ },
+ {
+  "origin": "512 -1344 -212",
+  "angles": "0 90 0",
+  "classname": "info_player_deathmatch"
+ },
+ {
+  "origin": "512 -1216 -212",
+  "angles": "0 90 0",
+  "classname": "info_player_deathmatch"
+ },
+ {
+  "origin": "640 -1344 -212",
+  "angles": "0 90 0",
+  "classname": "info_player_deathmatch"
+ },
+ {
+  "origin": "640 -1216 -212",
+  "angles": "0 90 0",
+  "classname": "info_player_deathmatch"
+ },
+ {
+  "origin": "768 -1344 -212",
+  "angles": "0 90 0",
+  "classname": "info_player_deathmatch"
+ },
+ {
+  "origin": "768 -1216 -212",
+  "angles": "0 90 0",
+  "classname": "info_player_deathmatch"
+ },
+ {
+  "origin": "0 64 -212",
+  "angles": "0 270 0",
+  "classname": "info_player_start"
+ },
+ {
+  "origin": "0 -64 -212",
+  "angles": "0 270 0",
+  "classname": "info_player_start"
+ },
+ {
+  "origin": "128 -64 -212",
+  "angles": "0 270 0",
+  "classname": "info_player_start"
+ },
+ {
+  "origin": "128 64 -212",
+  "angles": "0 270 0",
+  "classname": "info_player_start"
+ },
+ {
+  "origin": "256 -64 -212",
+  "angles": "0 270 0",
+  "classname": "info_player_start"
+ },
+ {
+  "origin": "256 64 -212",
+  "angles": "0 270 0",
+  "classname": "info_player_start"
+ },
+ {
+  "origin": "512 -64 -212",
+  "angles": "0 270 0",
+  "classname": "info_player_start"
+ },
+ {
+  "origin": "512 64 -212",
+  "angles": "0 270 0",
+  "classname": "info_player_start"
+ },
+ {
+  "origin": "640 -64 -212",
+  "angles": "0 270 0",
+  "classname": "info_player_start"
+ },
+ {
+  "origin": "640 64 -212",
+  "angles": "0 270 0",
+  "classname": "info_player_start"
+ },
+ {
+  "origin": "768 -64 -212",
+  "angles": "0 270 0",
+  "classname": "info_player_start"
+ },
+ {
+  "origin": "768 64 -212",
+  "angles": "0 270 0",
+  "classname": "info_player_start"
+ },
+ {
+  "origin": "0 0 -248",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "0 -128 -248",
+  "item": "1",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "128 0 -248",
+  "item": "4",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "256 0 -248",
+  "item": "5",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "512 0 -248",
+  "item": "7",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "640 0 -248",
+  "item": "6",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "768 0 -248",
+  "item": "2",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "128 -128 -248",
+  "item": "11",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "256 -128 -248",
+  "item": "12",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "512 -128 -248",
+  "item": "13",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "640 -128 -248",
+  "item": "10",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "768 -128 -248",
+  "item": "3",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "768 -1280 -248",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "640 -1280 -248",
+  "item": "4",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "512 -1280 -248",
+  "item": "5",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "256 -1280 -248",
+  "item": "7",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "128 -1280 -248",
+  "item": "6",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "0 -1280 -248",
+  "item": "2",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "768 -1152 -248",
+  "item": "1",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "640 -1152 -248",
+  "item": "11",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "512 -1152 -248",
+  "item": "12",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "256 -1152 -248",
+  "item": "13",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "128 -1152 -248",
+  "item": "10",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "origin": "0 -1152 -248",
+  "item": "3",
+  "count": "1",
+  "classname": "armoury_entity"
+ },
+ {
+  "model": "*1",
+  "classname": "func_buyzone"
+ },
+ {
+  "origin": "-304 48 -96",
+  "_light": "150 150 255 200",
+  "classname": "light"
+ },
+ {
+  "origin": "-176 176 -96",
+  "_light": "150 150 255 200",
+  "classname": "light"
+ },
+ {
+  "origin": "-304 -1328 -96",
+  "_light": "255 150 150 200",
+  "classname": "light"
+ },
+ {
+  "origin": "-176 -1456 -96",
+  "_light": "255 150 150 200",
+  "classname": "light"
+ },
+ {
+  "origin": "944 -1456 -96",
+  "_light": "255 150 150 200",
+  "classname": "light"
+ },
+ {
+  "origin": "1072 -1328 -96",
+  "_light": "255 150 150 200",
+  "classname": "light"
+ },
+ {
+  "origin": "1072 48 -96",
+  "_light": "150 150 255 200",
+  "classname": "light"
+ },
+ {
+  "origin": "944 176 -96",
+  "_light": "150 150 255 200",
+  "classname": "light"
+ },
+ {
+  "origin": "-304 -640 -96",
+  "_light": "255 255 128 200",
+  "classname": "light"
+ },
+ {
+  "origin": "1072 -640 -96",
+  "_light": "255 255 128 200",
+  "classname": "light"
+ },
+ {
+  "origin": "384 -1456 -32",
+  "_light": "255 150 150 200",
+  "classname": "light"
+ },
+ {
+  "origin": "384 176 -32",
+  "_light": "150 150 255 200",
+  "classname": "light"
+ },
+ {
+  "origin": "384 -640 -96",
+  "_light": "255 255 128 200",
+  "classname": "light"
+ },
+ {
+  "origin": "384 -640 96",
+  "angles": "0 0 0",
+  "_light": "255 255 128 200",
+  "classname": "light_environment"
+ }
+]

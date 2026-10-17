@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>反恐精英 · 田字雪地 fy_iceworld</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="stage">
+  <div id="viewport"></div>
+
+  <!-- ===== 战斗 HUD ===== -->
+  <div id="hud" class="hidden">
+    <canvas id="radar" width="160" height="160"></canvas>
+
+    <div id="scoreline">
+      <span id="ctScore">0</span><span id="timer">5:00</span><span id="tScore">0</span>
+    </div>
+
+    <div id="killfeed"></div>
+
+    <div id="money">$800</div>
+
+    <div id="hpbox">
+      <span class="hpicon">+</span><span id="hp">100</span>
+      <span class="armoricon">&#9679;</span><span id="ap">0</span>
+    </div>
+
+    <div id="ammobox">
+      <div id="wpnname">USP</div>
+      <div id="ammonum"><span id="clip">12</span><span class="bar">|</span><span id="reserve">100</span></div>
+    </div>
+
+    <div id="crosshair">
+      <i class="ch ch-t"></i><i class="ch ch-b"></i><i class="ch ch-l"></i><i class="ch ch-r"></i>
+    </div>
+
+    <div id="hitmark">+</div>
+    <div id="centermsg"></div>
+    <div id="dmgdir"></div>
+    <div id="vignette"></div>
+    <div id="scopes" class="hidden"></div>
+    <div id="scopelines" class="hidden"><i class="scope-line h"></i><i class="scope-line v"></i></div>
+  </div>
+
+  <!-- ===== TAB 计分板 ===== -->
+  <div id="scoreboard" class="hidden">
+    <div class="sb-title">fy_iceworld &nbsp;·&nbsp; 田字雪地</div>
+    <div class="sb-sub" id="sbSub">达到 30 杀 或 5 分钟</div>
+    <div class="sb-teams">
+      <div class="sb-team" id="sbCT">
+        <div class="sb-head ct">反恐精英 CT <span id="sbCTn">0</span></div>
+        <div class="sb-rows"></div>
+      </div>
+      <div class="sb-team" id="sbT">
+        <div class="sb-head t">恐怖分子 T <span id="sbTn">0</span></div>
+        <div class="sb-rows"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 买枪菜单 (B) ===== -->
+  <div id="buymenu" class="hidden">
+    <div class="bm-title">购买装备</div>
+    <div class="bm-list" id="buyList"></div>
+    <div class="bm-hint">数字键购买 · B / ESC 关闭</div>
+  </div>
+
+  <!-- ===== 阵亡界面 ===== -->
+  <div id="deathscreen" class="hidden">
+    <div class="ds-title">你已阵亡</div>
+    <div class="ds-by" id="dsBy">被 — 击杀</div>
+    <div class="ds-wait" id="dsWait">3 秒后重生</div>
+  </div>
+
+  <!-- ===== 结算 ===== -->
+  <div id="endscreen" class="hidden">
+    <div class="panel">
+      <h2 id="endTitle">本局结束</h2>
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-num" id="endKills">0</div><div class="stat-label">击杀</div></div>
+        <div class="stat"><div class="stat-num" id="endDeaths">0</div><div class="stat-label">死亡</div></div>
+        <div class="stat"><div class="stat-num" id="endAcc">0%</div><div class="stat-label">命中率</div></div>
+        <div class="stat"><div class="stat-num" id="endHs">0</div><div class="stat-label">爆头</div></div>
+      </div>
+      <button id="againBtn" class="big-btn">再来一局</button>
+    </div>
+  </div>
+
+  <!-- ===== 开始界面 ===== -->
+  <div id="startscreen" class="screen hidden">
+    <div class="panel">
+      <h1 class="game-title">COUNTER-STRIKE<span>1.6</span></h1>
+      <div class="subtitle"> fy_iceworld · 田字雪地 — 原版 BSP 1:1 解析还原</div>
+
+      <div class="form-row"><label>昵称</label>
+        <input id="nameInput" type="text" maxlength="12" value="Player" autocomplete="off"></div>
+      <div class="form-row"><label>阵营</label>
+        <div class="seg" id="teamPick">
+          <button data-v="CT" class="on">反恐精英 CT</button>
+          <button data-v="T">恐怖分子 T</button>
+        </div></div>
+      <div class="form-row"><label>对局</label>
+        <div class="seg" id="sizePick">
+          <button data-v="3">3 v 3</button>
+          <button data-v="5" class="on">5 v 5</button>
+          <button data-v="7">7 v 7</button>
+          <button data-v="11">11 v 11</button>
+        </div></div>
+      <div class="form-row"><label>难度</label>
+        <div class="seg" id="diffPick">
+          <button data-v="0">简单</button>
+          <button data-v="1" class="on">普通</button>
+          <button data-v="2">困难</button>
+        </div></div>
+      <div class="form-row"><label>灵敏度</label>
+        <input id="sensInput" type="range" min="1" max="100" value="35">
+        <span class="rangenum" id="sensVal">2.2</span></div>
+
+      <button id="startBtn" class="big-btn">进入战场</button>
+
+      <div class="controls">
+        <span>WASD 移动</span><span>鼠标 左/右键 开火/开镜</span><span>R 换弹</span>
+        <span>Shift 静步</span><span>Ctrl 下蹲</span><span>空格 跳跃</span>
+        <span>1/2/3 或 滚轮 切枪</span><span>地上枪械自动拾取</span>
+        <span>B 买枪</span><span>TAB 计分板</span><span>ESC 释放鼠标</span>
+      </div>
+      <div class="foot-tip">地图几何 · 出生点 · 枪位 全部取自原版 fy_iceworld.bsp</div>
+    </div>
+  </div>
+
+  <!-- ===== 暂停提示 ===== -->
+  <div id="pausehint" class="hidden">点击画面继续 · ESC 释放鼠标</div>
+
+  <div id="loading" class="screen"><div class="loadbox"><div class="loadbar"><i id="loadfill"></i></div><div class="loadtxt" id="loadtxt">加载地图 fy_iceworld …</div></div></div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "./lib/three.module.js" } }
+</script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
