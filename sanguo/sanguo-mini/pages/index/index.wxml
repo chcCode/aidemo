@@ -1,0 +1,66 @@
+<view class="page">
+    <view class="header">
+        <view class="title-row">
+            <text class="title">三国象棋</text>
+            <text class="badge">{{modeBadge}}</text>
+        </view>
+        <text class="subtitle">CN87205572U 专利版 · 135 落子点 · 48 枚棋子 · 15 条连接线</text>
+    </view>
+
+    <view class="sides">
+        <view wx:for="{{sides}}" wx:key="key"
+              class="side {{item.isTurn ? 'side-turn' : ''}} {{item.alive ? '' : 'side-out'}}">
+            <view class="dot" style="background:{{item.color}}"></view>
+            <text class="side-label">{{item.label}}</text>
+            <text class="side-state">{{item.alive ? (item.isTurn ? '行棋' : '等待') : '出局'}}</text>
+        </view>
+    </view>
+    <view class="seat-bar">{{seatsText}}　|　玩家1 为你</view>
+
+    <view class="status-bar">
+        <text class="status-main">{{statusText}}</text>
+        <text class="status-check" wx:if="{{checkText}}">{{checkText}}</text>
+        <text class="status-move">第 {{moveCount}} 手</text>
+    </view>
+    <view class="winner" wx:if="{{winner}}">{{winnerText}}</view>
+
+    <view class="board-wrap">
+        <canvas type="2d" id="board" class="board"
+                style="width:{{boardW}}px;height:{{boardH}}px"
+                bindtap="onBoardTap"></canvas>
+    </view>
+
+    <view class="legend">
+        <text class="legend-red">红色虚线：12 条边路过河线（专利限兵卒勇，本程序默认放宽）</text>
+        <text class="legend-gold">金色点线：3 条中路线，汇于中央「鼎」点</text>
+        <text class="legend-hint">点当前行棋方的棋子选中，再点绿点落子；红圈表示可吃子</text>
+    </view>
+
+    <view class="actions">
+        <button class="btn" bindtap="onUndo">悔棋</button>
+        <button class="btn" bindtap="onRestart">重开</button>
+        <button class="btn" bindtap="onPickPlayers">{{humanCount}} 人局</button>
+        <button class="btn" bindtap="onPickSide">执{{playerName}}</button>
+    </view>
+    <view class="actions">
+        <button class="btn" wx:if="{{hasAI}}" bindtap="onPickLevel">{{levelName}} AI</button>
+        <button class="btn" bindtap="onToggleLinks">{{showLinks ? '隐藏连线' : '显示连线'}}</button>
+        <button class="btn" bindtap="onRules">规则</button>
+    </view>
+
+    <view class="log-panel" wx:if="{{log.length}}">
+        <text class="log-title">最近着法</text>
+        <view wx:for="{{log}}" wx:key="*this" class="log-item">
+            <text>{{item}}</text>
+        </view>
+    </view>
+
+    <view class="handoff-mask" wx:if="{{handoff}}">
+        <view class="handoff-card">
+            <view class="handoff-dot" style="background:{{handoff.color}}"></view>
+            <text class="handoff-title">请把设备交给 玩家{{handoff.seat}}</text>
+            <text class="handoff-sub">{{handoff.name}} 方行棋 · 确认后再落子</text>
+            <button class="handoff-btn" bindtap="onHandoffDone">我准备好了</button>
+        </view>
+    </view>
+</view>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>三国象棋 · 1~3 人对局</title>
+<style>
+  :root {
+    --bg: #0F172A;
+    --panel: #16233B;
+    --panel2: #1B2C49;
+    --line: #2C4568;
+    --text: #E8EDF5;
+    --muted: #8FA3BF;
+    --gold: #D9B45C;
+    --cream: #F2E3C0;
+    --red: #E08B80;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .app { max-width: 1360px; margin: 0 auto; padding: 22px 18px 48px; }
+  header { display: flex; align-items: baseline; flex-wrap: wrap; gap: 14px; margin-bottom: 18px; }
+  h1 { margin: 0; font-size: 32px; letter-spacing: 3px; color: var(--cream); }
+  .badge { padding: 3px 11px; border: 1px solid #A9843A; border-radius: 6px;
+           color: #E5C77B; font-size: 13.5px; }
+  .sub { color: var(--muted); font-size: 14.5px; }
+  .main { display: flex; gap: 18px; align-items: flex-start; }
+  .board-panel { flex: 1 1 720px; min-width: 320px; }
+  .side-panel { flex: 0 0 330px; display: flex; flex-direction: column; gap: 14px; }
+  @media (max-width: 980px) {
+    .main { flex-direction: column; }
+    .side-panel { flex: 1 1 auto; width: 100%; }
+  }
+  .card { background: var(--panel); border: 1px solid var(--line);
+          border-radius: 12px; padding: 14px 16px; }
+  canvas { display: block; width: 100%; border-radius: 10px; cursor: pointer; }
+  .legend { margin-top: 12px; font-size: 14px; line-height: 1.85; color: var(--muted); }
+  .legend .r { color: var(--red); }
+  .legend .g { color: var(--gold); }
+  .sides { display: flex; gap: 8px; }
+  .side { flex: 1; text-align: center; padding: 10px 4px; border: 1px solid var(--line);
+          border-radius: 10px; background: var(--panel2); transition: all .15s; }
+  .side.turn { border-color: var(--gold); background: #25344B; }
+  .side.out { opacity: .38; }
+  .side .dot { width: 12px; height: 12px; border-radius: 50%; margin: 0 auto 6px; }
+  .side .nm { font-size: 16px; font-weight: 600; }
+  .side .st { display: block; margin-top: 3px; font-size: 12.5px; color: var(--muted); }
+  .seat-bar { font-size: 13px; color: var(--muted); text-align: center; line-height: 1.6;
+              padding: 2px 4px; margin-top: -6px; }
+  .status { display: flex; align-items: center; gap: 10px; font-size: 15.5px; }
+  .status .main-t { flex: 1; color: var(--cream); font-size: 17px; }
+  .status .chk { color: #FF8A7A; font-size: 13px; }
+  .status .cnt { color: var(--muted); font-size: 13px; }
+  .winner { text-align: center; color: #FFD86B; font-size: 19px;
+            background: #3B2A16; border-radius: 10px; padding: 10px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  button, select {
+    background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+    border-radius: 9px; padding: 9px 12px; font-size: 14.5px; cursor: pointer;
+    font-family: inherit;
+  }
+  button:hover, select:hover { border-color: var(--gold); }
+  button:disabled, select:disabled { opacity: .45; cursor: default; }
+  button.on { border-color: var(--gold); color: var(--gold); }
+  .row.equal > * { flex: 1; }
+  label.field { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+  .log { max-height: 210px; overflow-y: auto; font-size: 13.5px; line-height: 1.9; }
+  .log .item { border-bottom: 1px solid #22344E; padding: 3px 0; color: #B9C8DA; }
+  .card h2 { margin: 0 0 10px; font-size: 16.5px; color: var(--gold); }
+  details summary { cursor: pointer; color: var(--gold); font-size: 15.5px; font-weight: 600; }
+  details p { color: #B9C8DA; font-size: 14px; line-height: 1.8; margin: 10px 0 0; }
+  .foot { margin-top: 20px; color: #6E829E; font-size: 13px; line-height: 1.7; }
+  .handoff-mask { position: fixed; inset: 0; z-index: 50; display: none;
+                  align-items: center; justify-content: center; background: rgba(9, 15, 28, .93); }
+  .handoff-card { width: min(420px, 88vw); padding: 34px 26px 28px; text-align: center;
+                  border: 1px solid #A9843A; border-radius: 16px; background: var(--panel); }
+  .handoff-dot { width: 30px; height: 30px; border-radius: 50%; margin: 0 auto 18px; }
+  .handoff-title { color: var(--cream); font-size: 23px; font-weight: 700; }
+  .handoff-sub { color: var(--muted); font-size: 14.5px; margin-top: 10px; }
+  #btnHandoff { margin-top: 24px; width: 200px; border-color: #A9843A; color: var(--cream); font-size: 16px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>三国象棋</h1>
+    <span class="badge" id="badge">单人 · 双 AI</span>
+    <span class="sub">CN87205572U 专利版 · 135 落子点 · 48 枚棋子 · 15 条连接线已印出</span>
+  </header>
+
+  <div class="main">
+    <div class="board-panel">
+      <canvas id="board"></canvas>
+      <div class="card legend">
+        <div class="r">红色虚线：12 条边路过河线，连接相邻两方的边路交点（专利原文只给兵卒勇用，本程序默认放宽）</div>
+        <div class="g">金色点线：3 条中路线，由三方中路汇于中央「鼎」点</div>
+        <div>点击当前行棋方的棋子选中，再点绿色圆点落子；红色圆圈表示可吃子。三方网格连成一片、彼此相通。</div>
+      </div>
+    </div>
+
+    <div class="side-panel">
+      <div class="card sides" id="sides"></div>
+      <div class="seat-bar" id="seatsText"></div>
+      <div class="card status" id="status"></div>
+      <div id="winner"></div>
+
+      <div class="card row equal" id="modeRow">
+        <button data-count="1" class="on">1 人</button>
+        <button data-count="2">2 人</button>
+        <button data-count="3">3 人</button>
+      </div>
+      <div class="card row">
+        <label class="field">玩家1 执方
+          <select id="selSide">
+            <option value="A">蜀（红，下方）</option>
+            <option value="B">魏（黑，左上）</option>
+            <option value="C">吴（黄，右上）</option>
+          </select>
+        </label>
+        <label class="field">AI 难度
+          <select id="selLevel">
+            <option value="0">入门</option>
+            <option value="1" selected>普通</option>
+            <option value="2">进阶</option>
+          </select>
+        </label>
+      </div>
+      <div class="card row equal">
+        <button id="btnUndo">悔棋</button>
+        <button id="btnRestart">重开</button>
+      </div>
+      <div class="card row equal">
+        <button id="btnLinks" class="on">隐藏连接线</button>
+        <button id="btnAI">AI 代走一步</button>
+      </div>
+
+      <div class="card">
+        <h2>最近着法</h2>
+        <div class="log" id="log"></div>
+      </div>
+
+      <div class="card">
+        <details>
+          <summary>规则速览</summary>
+          <p>可选 1～3 人同屏对局：1 人时另两方由 AI 执，2 人时剩一方由 AI 执，3 人时全真人。玩家1 执方可自选，其余真人按行棋顺序（魏→蜀→吴）顺延，空缺席位交给 AI；多人局换人时会弹出交接提示。</p>
+          <p>三方各 16 子：魏／蜀／吴为主帅，另有士二、象二、车二、马二、炮二与卒／兵／勇五。摆法同中国象棋。</p>
+          <p>主帅与士限九宫，象走田字不过河；车走直线，炮不吃子时与车相同、吃子须隔且仅隔一个炮架（架后空格不可落子），马走日字（蹩腿）；兵未过河只能前进，过河后可横走，到对方底线升变为车。</p>
+          <p>魏、蜀、吴依次走棋。主帅被吃的一方出局，余子原地冻结任另两方吃掉；最后只剩一方即「一统天下」，得三分，和棋各一分。</p>
+          <p>规则依据：1987 年专利 CN87205572U《三国象棋》说明书全文与用户棋盘照片。</p>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    本页与微信小程序共用同一套规则引擎、AI 与棋盘绘制代码；AI 在端上运行，不联网、不收集任何数据。
+  </div>
+</div>
+
+<div class="handoff-mask" id="handoff">
+  <div class="handoff-card">
+    <div class="handoff-dot" id="handoffDot"></div>
+    <div class="handoff-title" id="handoffTitle"></div>
+    <div class="handoff-sub" id="handoffSub"></div>
+    <button id="btnHandoff">我准备好了</button>
+  </div>
+</div>
+
+<script src="board-data.js"></script>
+<script src="engine.js"></script>
+<script src="render.js"></script>
+<script>
+(function () {
+  var E = SanguoEngine, R = SanguoRender, BD = SanguoBoardData;
+  var ORDER = ['B', 'A', 'C'];
+  var TURN_ORDER = BD.turn_order;
+  var MODES = ['单人 · 双 AI', '双人 · 单 AI', '三人同屏'];
+  var game, humanCount = 1, playerSide = 'A', level = 1, showLinks = true;
+  var seatOf = { A: 1, B: 0, C: 0 };       // 0 = AI，>0 = 玩家编号
+  var selected = null, targets = [], history = [], logs = [], thinking = false;
+  var lastActor = null, handoff = false;
+  var canvas = document.getElementById('board');
+  var ctx = canvas.getContext('2d');
+  var cw = 0, ch = 0;
+
+  function el(id) { return document.getElementById(id); }
+  function isHuman(side) { return !!seatOf[side]; }
+  function seatLabel(side) { return seatOf[side] ? '玩家' + seatOf[side] : 'AI'; }
+
+  /* 玩家1 执自选方，其余真人按行棋顺序顺延，剩下的席位由 AI 补齐 */
+  function rebuildSeats() {
+    seatOf = { A: 0, B: 0, C: 0 };
+    seatOf[playerSide] = 1;
+    var start = TURN_ORDER.indexOf(playerSide), used = 1;
+    for (var k = 1; k < TURN_ORDER.length && used < humanCount; k++) {
+      var s = TURN_ORDER[(start + k) % TURN_ORDER.length];
+      seatOf[s] = used + 1;
+      used++;
+    }
+    el('badge').textContent = MODES[humanCount - 1];
+    el('seatsText').textContent = ORDER.map(function (key) {
+      return seatLabel(key) + ' ' + BD.sides[key].name;
+    }).join('　·　') + '　|　玩家1 为你';
+    el('selLevel').disabled = (humanCount === 3);
+    var btns = el('modeRow').getElementsByTagName('button');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].className = (+btns[i].dataset.count === humanCount) ? 'on' : '';
+    }
+  }
+
+  function resize() {
+    var w = canvas.clientWidth || 700;
+    var h = Math.round(w * (R.H + R.PAD * 2) / (R.W + R.PAD * 2));
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    canvas.style.height = h + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cw = w; ch = h;
+    draw();
+  }
+
+  function draw() {
+    if (!cw) return;
+    R.draw(ctx, { width: cw, height: ch, state: game,
+                  selected: selected, targets: targets,
+                  showLinks: showLinks, background: '#0F172A' });
+  }
+
+  function refresh() {
+    var html = '';
+    ORDER.forEach(function (k) {
+      var info = BD.sides[k];
+      var cls = 'side' + (game.turn === k && !game.winner ? ' turn' : '') +
+                (game.alive[k] ? '' : ' out');
+      var state = game.alive[k] ? (game.turn === k && !game.winner ? '行棋' : '等待') : '出局';
+      html += '<div class="' + cls + '"><div class="dot" style="background:' + info.color + '"></div>' +
+              '<div class="nm">' + info.name + '</div><span class="st">' +
+              seatLabel(k) + ' · ' + state + '</span></div>';
+    });
+    el('sides').innerHTML = html;
+
+    var seat = seatOf[game.turn] || 0;
+    var status;
+    if (game.winner) status = '对局结束';
+    else if (seat) status = humanCount === 1 ? '轮到你走棋' :
+        '轮到 玩家' + seat + '（' + BD.sides[game.turn].name + '）走棋';
+    else status = thinking ? BD.sides[game.turn].name + '（AI）思考中' :
+        'AI（' + BD.sides[game.turn].name + '）正在行棋';
+    var chk = (!game.winner && E.inCheck(game, game.turn)) ? BD.sides[game.turn].name + ' 被将' : '';
+    el('status').innerHTML = '<span class="main-t">' + status + '</span>' +
+      (chk ? '<span class="chk">' + chk + '</span>' : '') +
+      '<span class="cnt">第 ' + (game.moveNo - 1) + ' 手</span>';
+    el('winner').innerHTML = game.winner
+      ? '<div class="card winner">' + (game.winner === 'DRAW' ? '和棋，各得一分'
+          : BD.sides[game.winner].name + '（' + seatLabel(game.winner) + '）一统天下，得三分') + '</div>' : '';
+    el('log').innerHTML = logs.slice(-14).reverse().map(function (t) {
+      return '<div class="item">' + t + '</div>';
+    }).join('') || '<div class="item">尚无着法</div>';
+    el('btnUndo').disabled = history.length === 0;
+    draw();
+  }
+
+  function describe(m, st) {
+    var p = st.lastMove;
+    var t = BD.sides[p.s].name + '[' + seatLabel(p.s) + ']　' + p.t + '　' + m.from + ' → ' + m.to;
+    if (m.capture) t += '　吃' + m.capture;
+    if (m.promote) t += '　升车';
+    return t;
+  }
+
+  function hideHandoff() {
+    handoff = false;
+    el('handoff').style.display = 'none';
+  }
+
+  function finish() {
+    thinking = false;
+    hideHandoff();
+    refresh();
+  }
+
+  function maybeHandoff() {
+    if (humanCount < 2 || game.winner) return;
+    var s = game.turn, seat = seatOf[s] || 0;
+    if (!seat || !lastActor || lastActor === s) return;
+    handoff = true;
+    el('handoffDot').style.background = BD.sides[s].color;
+    el('handoffTitle').textContent = '请把设备交给 玩家' + seat;
+    el('handoffSub').textContent = BD.sides[s].name + ' 方行棋 · 确认后再落子';
+    el('handoff').style.display = 'flex';
+  }
+
+  /* 连续走完所有 AI 席位，直到轮到真人或对局结束 */
+  function runAI() {
+    if (game.winner) { finish(); return; }
+    thinking = true;
+    var guard = 0;
+    while (!game.winner && !isHuman(game.turn) && guard < 6) {
+      var m = E.chooseMove(game, game.turn, level);
+      if (!m) break;
+      history.push({ state: E.cloneState(game), logs: logs.slice() });
+      game = E.applyMove(game, m);
+      logs.push(describe(m, game));
+      guard++;
+    }
+    thinking = false;
+    refresh();
+    if (game.winner) { finish(); return; }
+    maybeHandoff();
+  }
+
+  function playMove(m) {
+    lastActor = game.turn;
+    history.push({ state: E.cloneState(game), logs: logs.slice() });
+    if (history.length > 120) history.shift();
+    game = E.applyMove(game, m);
+    logs.push(describe(m, game));
+    selected = null; targets = [];
+    refresh();
+    if (game.winner) { finish(); return; }
+    runAI();
+  }
+
+  canvas.addEventListener('click', function (ev) {
+    if (thinking || handoff || game.winner || !isHuman(game.turn)) return;
+    var rect = canvas.getBoundingClientRect();
+    var p = R.hit({ width: cw, height: ch }, ev.clientX - rect.left, ev.clientY - rect.top);
+    if (!p) return;
+    var pc = game.board[p];
+    if (selected) {
+      for (var i = 0; i < targets.length; i++) {
+        if (targets[i].to === p) { playMove(targets[i]); return; }
+      }
+    }
+    if (pc && pc.s === game.turn && !game.frozen[game.turn]) {
+      selected = p;
+      targets = E.movesFor(game, p);
+    } else {
+      selected = null; targets = [];
+    }
+    refresh();
+  });
+
+  el('btnUndo').addEventListener('click', function () {
+    if (!history.length) return;
+    var snap = null, guard = 0;
+    while (history.length && guard < 8) {
+      snap = history.pop(); guard++;
+      if (isHuman(snap.state.turn)) break;     // 退回上一位真人的回合
+    }
+    if (!snap) return;
+    game = snap.state; logs = snap.logs;
+    selected = null; targets = []; thinking = false; lastActor = null;
+    hideHandoff();
+    refresh();
+  });
+
+  function restart() {
+    game = E.createGame(); history = []; logs = [];
+    selected = null; targets = []; thinking = false; lastActor = null;
+    hideHandoff();
+    refresh();
+    runAI();
+  }
+
+  el('btnRestart').addEventListener('click', restart);
+  el('modeRow').addEventListener('click', function (e) {
+    var btn = e.target.closest ? e.target.closest('button[data-count]') : null;
+    if (!btn) return;
+    var n = parseInt(btn.dataset.count, 10);
+    if (n === humanCount) return;
+    humanCount = n;
+    rebuildSeats();
+    restart();
+  });
+  el('selSide').addEventListener('change', function (e) {
+    playerSide = e.target.value; rebuildSeats(); restart();
+  });
+  el('selLevel').addEventListener('change', function (e) {
+    level = parseInt(e.target.value, 10);
+  });
+  el('btnLinks').addEventListener('click', function () {
+    showLinks = !showLinks;
+    this.textContent = showLinks ? '隐藏连接线' : '显示连接线';
+    this.className = showLinks ? 'on' : '';
+    draw();
+  });
+  el('btnAI').addEventListener('click', function () {
+    if (game.winner || thinking || handoff) return;
+    var m = E.chooseMove(game, game.turn, level);
+    if (m) playMove(m);
+  });
+  el('btnHandoff').addEventListener('click', hideHandoff);
+
+  /* 供自动化回归与二次开发调用的钩子 */
+  window.SanguoDebug = {
+    seats: function () {
+      return { humanCount: humanCount, playerSide: playerSide,
+               seatOf: { A: seatOf.A, B: seatOf.B, C: seatOf.C },
+               handoff: handoff, turn: game.turn, logs: logs.slice(),
+               winner: game.winner };
+    },
+    state: function () { return game; },
+    movesFor: function (p) { return E.movesFor(game, p); },
+    choose: function () { return E.chooseMove(game, game.turn, level); },
+    play: function (m) { playMove(m); }
+  };
+
+  window.addEventListener('resize', resize);
+  rebuildSeats();
+  game = E.createGame();
+  resize();
+  refresh();
+  runAI();
+})();
+</script>
+</body>
+</html>

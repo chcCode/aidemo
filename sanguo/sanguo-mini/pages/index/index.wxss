@@ -1,0 +1,266 @@
+.page {
+    box-sizing: border-box;
+    min-height: 100vh;
+    padding: 24rpx 12rpx 60rpx;
+    background: #0F172A;
+}
+
+.header {
+    padding: 8rpx 12rpx 20rpx;
+}
+
+.title-row {
+    display: flex;
+    align-items: center;
+}
+
+.title {
+    font-size: 48rpx;
+    font-weight: 700;
+    color: #F2E3C0;
+    letter-spacing: 4rpx;
+}
+
+.badge {
+    margin-left: 18rpx;
+    padding: 4rpx 14rpx;
+    border: 2rpx solid #A9843A;
+    border-radius: 8rpx;
+    color: #E5C77B;
+    font-size: 23rpx;
+}
+
+.subtitle {
+    display: block;
+    margin-top: 10rpx;
+    color: #8FA3BF;
+    font-size: 25rpx;
+}
+
+.sides {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16rpx;
+}
+
+.side {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    flex-direction: column;
+    margin: 0 6rpx;
+    padding: 14rpx 4rpx;
+    border: 2rpx solid #233752;
+    border-radius: 14rpx;
+    background: #16233B;
+}
+
+.side-turn {
+    border-color: #D9B45C;
+    background: #25344B;
+}
+
+.side-out {
+    opacity: 0.4;
+}
+
+.dot {
+    width: 22rpx;
+    height: 22rpx;
+    border-radius: 50%;
+    margin-bottom: 8rpx;
+}
+
+.side-label {
+    color: #E8EDF5;
+    font-size: 27rpx;
+    font-weight: 600;
+}
+
+.side-state {
+    margin-top: 4rpx;
+    color: #8FA3BF;
+    font-size: 23rpx;
+}
+
+.status-bar {
+    display: flex;
+    align-items: center;
+    padding: 12rpx 16rpx;
+    margin-bottom: 12rpx;
+    border-radius: 12rpx;
+    background: #16233B;
+}
+
+.status-main {
+    flex: 1;
+    color: #F2E3C0;
+    font-size: 30rpx;
+}
+
+.status-check {
+    margin-right: 16rpx;
+    color: #FF8A7A;
+    font-size: 24rpx;
+}
+
+.status-move {
+    color: #8FA3BF;
+    font-size: 24rpx;
+}
+
+.winner {
+    padding: 14rpx;
+    margin-bottom: 12rpx;
+    border-radius: 12rpx;
+    background: #3B2A16;
+    color: #FFD86B;
+    font-size: 31rpx;
+    text-align: center;
+}
+
+.board-wrap {
+    display: flex;
+    justify-content: center;
+}
+
+.board {
+    border-radius: 10rpx;
+}
+
+.legend {
+    display: flex;
+    flex-direction: column;
+    padding: 14rpx 16rpx;
+    margin-top: 14rpx;
+    border: 2rpx solid #233752;
+    border-radius: 12rpx;
+    background: #16233B;
+}
+
+.legend-red {
+    color: #E08B80;
+    font-size: 24rpx;
+    line-height: 1.6;
+}
+
+.legend-gold {
+    color: #D9B45C;
+    font-size: 24rpx;
+    line-height: 1.6;
+}
+
+.legend-hint {
+    margin-top: 6rpx;
+    color: #9CB0C9;
+    font-size: 24rpx;
+    line-height: 1.6;
+}
+
+.actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 14rpx;
+}
+
+.btn {
+    flex: 1;
+    margin: 0 5rpx;
+    padding: 0 6rpx;
+    border: 2rpx solid #2C4568;
+    border-radius: 12rpx;
+    background: #1B2C49;
+    color: #E8EDF5;
+    font-size: 25rpx;
+    line-height: 72rpx;
+}
+
+.btn-wide {
+    flex: 1;
+    background: #233B5C;
+}
+
+.log-panel {
+    padding: 16rpx 20rpx;
+    margin-top: 18rpx;
+    border: 2rpx solid #233752;
+    border-radius: 12rpx;
+    background: #16233B;
+}
+
+.log-title {
+    color: #D9B45C;
+    font-size: 27rpx;
+    font-weight: 600;
+}
+
+.log-item {
+    padding: 8rpx 0;
+    border-bottom: 2rpx solid #22344E;
+    color: #B9C8DA;
+    font-size: 24rpx;
+}
+
+.seat-bar {
+    margin-bottom: 12rpx;
+    padding: 8rpx 14rpx;
+    border-radius: 10rpx;
+    background: #16233B;
+    color: #9CB0C9;
+    font-size: 23rpx;
+    text-align: center;
+}
+
+.handoff-mask {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(9, 15, 28, 0.94);
+}
+
+.handoff-card {
+    width: 600rpx;
+    padding: 44rpx 32rpx 36rpx;
+    border: 2rpx solid #A9843A;
+    border-radius: 20rpx;
+    background: #16233B;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.handoff-dot {
+    width: 60rpx;
+    height: 60rpx;
+    border-radius: 50%;
+    margin-bottom: 24rpx;
+}
+
+.handoff-title {
+    color: #F2E3C0;
+    font-size: 38rpx;
+    font-weight: 700;
+}
+
+.handoff-sub {
+    margin-top: 14rpx;
+    color: #9CB0C9;
+    font-size: 26rpx;
+}
+
+.handoff-btn {
+    width: 420rpx;
+    margin-top: 36rpx;
+    border: 2rpx solid #A9843A;
+    border-radius: 12rpx;
+    background: #233B5C;
+    color: #F2E3C0;
+    font-size: 30rpx;
+    line-height: 80rpx;
+}

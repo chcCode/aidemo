@@ -1,0 +1,65 @@
+.page {
+    box-sizing: border-box;
+    min-height: 100vh;
+    padding: 32rpx 24rpx 60rpx;
+    background: #0F172A;
+}
+
+.header {
+    padding: 8rpx 4rpx 26rpx;
+}
+
+.title {
+    display: block;
+    color: #F2E3C0;
+    font-size: 46rpx;
+    font-weight: 700;
+}
+
+.subtitle {
+    display: block;
+    margin-top: 10rpx;
+    color: #8FA3BF;
+    font-size: 25rpx;
+}
+
+.card {
+    padding: 24rpx 26rpx;
+    margin-bottom: 20rpx;
+    border: 2rpx solid #233752;
+    border-radius: 16rpx;
+    background: #16233B;
+}
+
+.card-title {
+    display: block;
+    margin-bottom: 16rpx;
+    color: #D9B45C;
+    font-size: 31rpx;
+    font-weight: 600;
+}
+
+.line {
+    display: flex;
+    margin-bottom: 12rpx;
+}
+
+.bullet {
+    width: 24rpx;
+    color: #D9B45C;
+    font-size: 26rpx;
+}
+
+.line-text {
+    flex: 1;
+    color: #C6D3E4;
+    font-size: 26rpx;
+    line-height: 1.65;
+}
+
+.source {
+    padding: 20rpx 0;
+    color: #7E93AE;
+    font-size: 23rpx;
+    line-height: 1.6;
+}

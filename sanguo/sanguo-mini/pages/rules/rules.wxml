@@ -1,0 +1,16 @@
+<view class="page">
+    <view class="header">
+        <text class="title">规则说明</text>
+        <text class="subtitle">三国象棋 · 专利 CN87205572U 版</text>
+    </view>
+
+    <view wx:for="{{sections}}" wx:key="title" class="card">
+        <text class="card-title">{{item.title}}</text>
+        <view wx:for="{{item.lines}}" wx:for-item="line" wx:key="*this" class="line">
+            <text class="bullet">·</text>
+            <text class="line-text">{{line}}</text>
+        </view>
+    </view>
+
+    <view class="source">{{source}}</view>
+</view>
